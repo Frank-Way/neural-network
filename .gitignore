@@ -1,0 +1,6 @@
+__pycache__/
+.idea/
+data/
+research/
+*.pyc
+*_backup.json

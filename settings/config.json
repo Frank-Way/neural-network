@@ -1,0 +1,48 @@
+{
+  "samples_dir_name": "data/approximation/2",
+  "sample_prefix": "x2*sin(pi*x1)",
+  "limits": [
+    [0.0, 3.14],
+    [-2.0, 2.0]
+  ],
+  "sample_extension": "pkl",
+  "size": 64,
+  "lr": 0.1,
+  "final_lr": 0.005,
+  "batch_size": 64,
+  "epochs": 15000,
+  "query_times": 10,
+  "early_stopping": false,
+  "layers": 2,
+  "neurons": [
+    32,
+    1
+  ],
+  "layers_class": [
+    "dense",
+    "dense"
+  ],
+  "activations_class": [
+    "tanh",
+    "linear"
+  ],
+  "dropout": [
+    1.0,
+    1.0
+  ],
+  "weight_init": [
+    "glorot",
+    "glorot"
+  ],
+  "decay_type": "linear",
+  "momentum": 0.95,
+  "loss_class": "mse",
+  "optimizer_class": "sgd",
+  "trainer_class": "t",
+  "data_loader_class": "ap",
+  "seed": 0,
+  "use_seed": false,
+  "scale_inputs": false,
+  "print_results": true,
+  "show_plots": true
+}
