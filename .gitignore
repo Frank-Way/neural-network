@@ -1,6 +1,7 @@
 __pycache__/
 .idea/
 data/
-research/
+research/delta/results
+research/backprop/results
 *.pyc
 *_backup.json
