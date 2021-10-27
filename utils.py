@@ -1,4 +1,7 @@
-import json
+"""
+Модуль с различными вспомогательными функциями для выполнения проверок,
+обработки и форматирования данных, отрисовки графиков.
+"""
 import os
 from typing import List, Tuple
 
@@ -19,13 +22,8 @@ def assert_same_shape(a: ndarray, b: ndarray):
     Функция проверки совпадения форм массивов
     Parameters
     ----------
-    a: ndarray
-        Первый массив
-    b: ndarray
-        Второй массив
-    Returns
-    -------
-    None
+    a: Первый массив
+    b: Второй массив
     """
     assert a.shape == b.shape, \
         "The shapes of the given arrays do not match:\n" \
@@ -39,14 +37,11 @@ def permute_data(a: ndarray,
     Функция перемешивания двух массивов
     Parameters
     ----------
-    a: ndarray
-        Первый массив
-    b: ndarray
-        Второй массив
+    a: Первый массив
+    b: Второй массив
     Returns
     -------
-    Tuple[ndarray]
-        Перемешанные массивы
+    Tuple[ndarray]: Перемешанные массивы
     """
     perm = np.random.permutation(a.shape[0])
     return a[perm], b[perm]
@@ -57,12 +52,10 @@ def complete_path(path: str) -> str:
     Функция формирования полного пути
     Parameters
     ----------
-    path: str
-        Путь
+    path: Путь
     Returns
     -------
-    str
-        Полный путь
+    str: Полный путь
     """
     dirname = os.path.dirname(__file__)
     filename = os.path.join(dirname, path)
@@ -76,12 +69,10 @@ def normalize(a: ndarray) -> ndarray:
     обратных вероятностей q = 1 - p
     Parameters
     ----------
-    a: ndarray
-        Исходный массив вероятностей
+    a: Исходный массив вероятностей
     Returns
     -------
-    ndarray
-        Массив исходных и обратных вероятностей
+    ndarray: Массив исходных и обратных вероятностей
     """
     other = 1.0 - a
     return np.concatenate([a, other], axis=1)
@@ -89,17 +80,14 @@ def normalize(a: ndarray) -> ndarray:
 
 def unnormalize(a: np.ndarray) -> ndarray:
     """
-    Функция возвращает массив исходных вероятностей из
-    массива вероятностей, дополненных обратными с помощью
-    функции normalize
+    Функция возвращает массив исходных вероятностей из массива
+    вероятностей, дополненных обратными с помощью функции normalize
     Parameters
     ----------
-    a: ndarray
-        Массив исходных и обратных вероятностей
+    a: Массив исходных и обратных вероятностей
     Returns
     -------
-    ndarray
-        Массив исходных вероятностей
+    ndarray: Массив исходных вероятностей
     """
     return a[np.newaxis, 0]
 
@@ -110,14 +98,11 @@ def to_2d(a: np.ndarray,
     Функция формирования 2-мерного массива из 1-мерного
     Parameters
     ----------
-    a: ndarray
-        1-мерный массив
-    array_type: str
-        Тип 1-мерного массива (строка или столбец)
+    a: 1-мерный массив
+    array_type: Тип 1-мерного массива (строка или столбец)
     Returns
     -------
-    ndarray
-        2-мерный массив
+    ndarray: 2-мерный массив
     """
 
     if a.ndim == 1:
@@ -131,36 +116,16 @@ def to_2d(a: np.ndarray,
 
 def softmax(x: ndarray, axis: int = None) -> ndarray:
     """
-    Функция применения Softmax к массиву по указанной
-    оси
+    Функция применения Softmax к массиву по указанной оси
     Parameters
     ----------
-    x: ndarray
-        Входной массив
-    axis: int
-        Номер оси
+    x: Входной массив
+    axis: Номер оси
     Returns
     -------
-    ndarray
-        Softmax(x)
+    ndarray: Softmax(x)
     """
     return np.exp(x - logsumexp(x, axis=axis, keepdims=True))
-
-
-def load_config(path: str) -> dict:
-    """
-    Функция для загрузки словаря с конфигурацией
-    Parameters
-    ----------
-    path: str
-        Путь к json-файлу с конфигурацией
-    Returns
-    -------
-    dict
-        Словарь, представляющий собой конфигурацию
-    """
-    with open(path, 'r') as file:
-        return json.load(file)
 
 
 def load_image(filename: str, scaler: MinMaxScaler = None) -> ndarray:
@@ -169,14 +134,11 @@ def load_image(filename: str, scaler: MinMaxScaler = None) -> ndarray:
     к одномерному массиву с диапозоном значений [0; 1]
     Parameters
     ----------
-    filename: str
-        Путь к файлу с изображением
-    scaler: MinMaxScaler
-        Скейлер для приведения значений к диапозону [0; 1]
+    filename: Путь к файлу с изображением
+    scaler: Скейлер для приведения значений к диапозону [0; 1]
     Returns
     -------
-    ndarray
-        Одномерный массив, представляющий изображение в градациях серого
+    ndarray: Одномерный массив, представляющий изображение в градациях серого
     """
     img = Image.open(filename).convert("L")
     img.load()
@@ -189,45 +151,35 @@ def load_image(filename: str, scaler: MinMaxScaler = None) -> ndarray:
 
 def calc_accuracy_model(model,
                         test_set: ndarray,
-                        y_test: ndarray) -> None:
+                        y_test: ndarray) -> str:
     """
-    Функция оценки точности модели в количестве правильно
-    предсказанных меток
+    Функция оценки точности модели в количестве правильно предсказанных меток
     Parameters
     ----------
-    model: NeuralNetwork
-        Модель (нейросеть)
-    test_set: ndarray
-        Набор тестовых входных данных
-    y_test: ndarray
-        Набор тестовых выходных данных
+    model: Модель (нейросеть)
+    test_set: Набор тестовых входных данных
+    y_test: Набор тестовых выходных данных
     Returns
     -------
-    None
+    str: Точность работы модели
     """
     pred_test = model.forward(test_set, inference=True)
-    accuracy = np.equal(np.argmax(pred_test, axis=1), np.argmax(y_test, axis=1)).sum()
+    accuracy = np.equal(np.argmax(pred_test, axis=1),
+                        np.argmax(y_test, axis=1)).sum()
     accuracy = accuracy * 100.0 / test_set.shape[0]
-    print(f"The model validation accuracy is: {accuracy:.2f}%")
+    return f"Точность модели: {accuracy:.2f}%"
 
 
 def batches_generator(x: ndarray,
                       y: ndarray,
-                      size: int = 32) -> Tuple[ndarray]:
+                      size: int = 32):
     """
     Генератор пакетов для обучения
     Parameters
     ----------
-    x: ndarray
-        Входы
-    y: ndarray
-        Требуемые выходы
-    size: int
-        Размер пакета
-    Returns
-    -------
-    Tuple[ndarray]
-        Сгенерированные пакеты
+    x: Входы
+    y: Требуемые выходы
+    size: Размер пакета
     """
     assert x.shape[0] == y.shape[0], f"""
     Входы и выходы должны иметь одинаковое число строк, но входы имеют
@@ -235,6 +187,7 @@ def batches_generator(x: ndarray,
     """
 
     n = x.shape[0]
+    size = min(size, n)
 
     for ii in range(0, n, size):
         x_batch, y_batch = x[ii:ii+size], y[ii:ii+size]
@@ -252,18 +205,12 @@ def show_results(losses: List[float],
     аппроксимирующей математические функции одной переменной
     Parameters
     ----------
-    losses: List[float]
-        Список потерь
-    x_test: ndarray
-        Массив входных значений
-    pred_test: ndarray
-        Массив выходных значений
-    y_test: ndarray
-        Массив требуемых выходных значений
-    function_name: str
-        Название функции
-    neurons: List[int]
-        Количество нейронов
+    losses: Список потерь
+    x_test: Массив входных значений
+    pred_test: Массив выходных значений
+    y_test: Массив требуемых выходных значений
+    function_name: Название функции
+    neurons: Количество нейронов
     Returns
     -------
     None
@@ -274,23 +221,23 @@ def show_results(losses: List[float],
     e = t - y
 
     ax1 = plt.subplot(122)
-    ax1.plot(x, y, label='approximated')
-    ax1.plot(x, t, label='real')
-    ax1.set_title(f'approximation with {neurons[:-1]} neurons')
+    ax1.plot(x, y, label='модель')
+    ax1.plot(x, t, label='функция')
+    ax1.set_title(f'воспроизведено с помощью {neurons[:-1]} нейронов')
     ax1.set(xlabel='x', ylabel=function_name)
     ax1.legend()
     ax1.grid()
 
     ax2 = plt.subplot(221)
     ax2.plot(range(len(losses)), losses)
-    ax2.set_title('loss function')
-    ax2.set(xlabel='queries', ylabel='loss')
+    ax2.set_title('функция потерь')
+    ax2.set(xlabel='опросы', ylabel='потеря')
     ax2.grid()
 
     ax3 = plt.subplot(223)
     ax3.plot(x, e)
-    ax3.set_title('absolute errors')
-    ax3.set(xlabel='x', ylabel='E(x)')
+    ax3.set_title('макс. абс. ошибка')
+    ax3.set(xlabel='x', ylabel='MAE(x)')
     ax3.grid()
 
     plt.show()
@@ -307,18 +254,12 @@ def show_results3d(losses: List[float],
     аппроксимирующей математические функции одной переменной
     Parameters
     ----------
-    losses: List[float]
-        Список потерь
-    x_test: ndarray
-        Массив входных значений
-    pred_test: ndarray
-        Массив выходных значений
-    y_test: ndarray
-        Массив требуемых выходных значений
-    function_name: str
-        Название функции
-    neurons: List[int]
-        Количество нейронов
+    losses: Список потерь
+    x_test: Массив входных значений
+    pred_test: Массив выходных значений
+    y_test: Массив требуемых выходных значений
+    function_name: Название функции
+    neurons: Количество нейронов
     Returns
     -------
     None
@@ -331,23 +272,23 @@ def show_results3d(losses: List[float],
 
     fig = plt.figure()
     ax1 = fig.add_subplot(122, projection='3d')
-    ax1.scatter3D(x[:, 0], x[:, 1], y, label='approximated')
-    ax1.scatter3D(x[:, 0], x[:, 1], t, label='real')
-    ax1.set_title(f'approximation with {neurons[:-1]} neurons')
+    ax1.scatter3D(x[:, 0], x[:, 1], y, label='модель')
+    ax1.scatter3D(x[:, 0], x[:, 1], t, label='функция')
+    ax1.set_title(f'воспроизведено с помощью {neurons[:-1]} нейронов')
     ax1.set(xlabel="x1", ylabel="x2", zlabel=f"{function_name}")
     ax1.legend()
     ax1.grid()
 
     ax2 = fig.add_subplot(221)
     ax2.plot(range(len(losses)), losses)
-    ax2.set_title('loss function')
-    ax2.set(xlabel='queries', ylabel='loss')
+    ax2.set_title('функция потерь')
+    ax2.set(xlabel='опросы', ylabel='потеря')
     ax2.grid()
 
     ax3 = fig.add_subplot(223, projection='3d')
     ax3.scatter3D(x[:, 0], x[:, 1], e)
-    ax3.set_title('absolute errors')
-    ax3.set(xlabel="x1", ylabel="x2", zlabel="E(x1, x2)")
+    ax3.set_title('макс. абс. ошибка')
+    ax3.set(xlabel="x1", ylabel="x2", zlabel="MAE(x1, x2)")
     ax3.grid()
 
     plt.show()
@@ -358,14 +299,12 @@ def mnist_labels_to_y(labels: ndarray) -> ndarray:
     Функция преобразования метки в набор набор признаков
     Parameters
     ----------
-    labels: ndarray
-        Массив меток
+    labels: Массив меток
     Returns
     -------
-    ndarray
-        Массив признаков
+    ndarray: Массив признаков
     """
-    labels = labels - np.min(labels)
+    labels -= np.min(labels)
     classes = int(np.max(labels) + 1)
     y = np.zeros((labels.size, classes))
     for (ii, label) in enumerate(labels):
@@ -378,31 +317,24 @@ def replace_chars(a: str) -> str:
     Функция для удаления пробелов и замены '/' на ':' в строках
     Parameters
     ----------
-    a: str
-        Входная строка
+    a: Входная строка
     Returns
     -------
-    str
-        Выходная строка с заменёнными символами
+    str: Выходная строка с заменёнными символами
     """
     return a.replace("/", ":").replace(" ", "")
 
 
-def cartesian(arrays: Tuple[ndarray, ...],
-              out: ndarray = None) -> ndarray:
+def cartesian(arrays: Tuple[ndarray, ...]) -> ndarray:
     """
     Вычисление декартового произведения массивов
     Parameters
     ----------
-    arrays : Tuple[ndarray]
-        1-D массивы
-    out : ndarray
-        Массив с результатом
+    arrays: 1-D массивы
     Returns
     -------
-    out : ndarray
-        2-D массив формы (M, len(arrays)) с декартовым произведением
-        исходных массивов
+    ndarray: 2-D массив формы (M, len(arrays)) с декартовым произведением
+             исходных массивов
     Examples
     --------
     >>> cartesian((np.asarray([1, 2, 3]), np.asarray([4, 5]), np.asarray([6, 7])))

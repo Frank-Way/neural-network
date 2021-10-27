@@ -1,3 +1,6 @@
+"""
+Модуль с описанием классов-оптимизаторов нейросети
+"""
 from typing import List
 
 import numpy as np
@@ -15,15 +18,11 @@ class Optimizer(object):
                  decay_type: str = None):
         """
         Конструктор оптимизатора
-
         Parameters
         ----------
-        decay_type : str
-            Способ уменьшения скорости обучения
-        final_lr : float
-            Финальная скорость обучения
-        lr: float
-            Скорость обучения
+        decay_type: Способ уменьшения скорости обучения
+        final_lr: Финальная скорость обучения
+        lr: Скорость обучения
         """
         self.lr = lr
         self.final_lr = final_lr
@@ -33,10 +32,6 @@ class Optimizer(object):
     def _setup_decay(self) -> None:
         """
         Установка правила уменьшения скорости обучения
-
-        Returns
-        -------
-        None
         """
         if not self.decay_type:
             return
@@ -44,15 +39,12 @@ class Optimizer(object):
             self.decay_per_epoch = np.power(self.final_lr / self.lr,
                                             1.0 / (self.max_epochs - 1))
         elif self.decay_type == "linear":
-            self.decay_per_epoch = (self.lr - self.final_lr) / (self.max_epochs - 1)
+            self.decay_per_epoch = ((self.lr - self.final_lr) /
+                                    (self.max_epochs - 1))
 
     def _decay_lr(self) -> None:
         """
         Уменьшение скорости обучения
-
-        Returns
-        -------
-        None
         """
         if not self.decay_type:
             return
@@ -67,15 +59,9 @@ class Optimizer(object):
              epoch: int = 0) -> None:
         """
         Шаг подстройки параметров модели
-
         Parameters
         ----------
-        epoch: int
-            Номер эпохи обучения
-
-        Returns
-        -------
-        None
+        epoch: Номер эпохи обучения
         """
         for (param, param_grad) in zip(self.net.params(),
                                        self.net.param_grads()):
@@ -99,15 +85,11 @@ class SGD(Optimizer):
                  decay_type: str = None):
         """
         Конструктор оптимизатора
-
         Parameters
         ----------
-        decay_type : str
-            Способ уменьшения скорости обучения
-        final_lr : float
-            Финальная скорость обучения
-        lr: float
-            Скорость обучения
+        decay_type: Способ уменьшения скорости обучения
+        final_lr: Финальная скорость обучения
+        lr: Скорость обучения
         """
         super().__init__(lr, final_lr, decay_type)
 
@@ -115,10 +97,6 @@ class SGD(Optimizer):
         """
         Каждый параметр корректируется в соответствии с вычисленными
         соответсвующими градиентами с учётом скорости обучения
-
-        Returns
-        -------
-        None
         """
         update = self.lr * kwargs['grad']
         kwargs['param'] -= update
@@ -137,17 +115,12 @@ class SGDMomentum(Optimizer):
                  momentum: float = 0.9) -> None:
         """
         Конструктор оптимизатора
-
         Parameters
         ----------
-        decay_type : str
-            Способ уменьшения скорости обучения
-        final_lr : float
-            Финальная скорость обучения
-        lr: float
-            Скорость обучения
-        momentum: float
-            Величина инертности
+        decay_type: Способ уменьшения скорости обучения
+        final_lr: Финальная скорость обучения
+        lr: Скорость обучения
+        momentum: Величина инертности
         """
         super().__init__(lr, final_lr, decay_type)
         self.momentum = momentum
@@ -156,9 +129,9 @@ class SGDMomentum(Optimizer):
         """
         Реализация шага подстройки параметров модели с учётом
         инертности
-        Returns
-        -------
-        None
+        Parameters
+        ----------
+        epoch: Эпоха обучения
         """
         if self.first:
             self.velocities = [np.zeros_like(param)

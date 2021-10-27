@@ -1,3 +1,6 @@
+"""
+Модуль с описанием классов функций потерь
+"""
 import numpy as np
 from numpy import ndarray
 
@@ -21,18 +24,13 @@ class Loss(object):
                 target: ndarray) -> float:
         """
         Вычисление потерь
-
         Parameters
         ----------
-        prediction: ndarray
-            Предсказанные значения
-        target: ndarray
-            Целевые значения
-
+        prediction: Предсказанные значения
+        target: Целевые значения
         Returns
         -------
-        float
-            Потери
+        float: Потери
         """
         assert_same_shape(prediction, target)
 
@@ -46,11 +44,9 @@ class Loss(object):
     def backward(self) -> ndarray:
         """
         Вычисление градиента потерь по входам функции потерь
-
         Returns
         -------
-        ndarray
-            Градиент потерь
+        ndarray: Градиент потерь
         """
         self.input_grad = self._input_grad()
 
@@ -83,27 +79,24 @@ class MeanSquaredError(Loss):
     def _output(self) -> float:
         """
         Вычисление среднего квадрата ошибки
-
         Returns
         -------
-        float
-            Ошибка
+        float: Ошибка
         """
         if self.normalize:
-            self.prediction = self.prediction / self.prediction.sum(axis=1, keepdims=True)
+            self.prediction = (self.prediction /
+                               self.prediction.sum(axis=1, keepdims=True))
         loss = np.sum(np.power(self.prediction - self.target, 2))
         loss /= self.prediction.shape[0]
 
-        return loss
+        return float(loss)
 
     def _input_grad(self) -> ndarray:
         """
         Вычисление ошибка градиента функции потерь по входу
-
         Returns
         -------
-        ndarray
-            Градиент потерь
+        ndarray: Градиент потерь
         """
         input_grad = 2.0 * (self.prediction - self.target)
         input_grad /= self.prediction.shape[0]
@@ -119,11 +112,9 @@ class SoftmaxCrossEntropy(Loss):
     def __init__(self, eps: float = 1e-9):
         """
         Конструктор функции потерь
-
         Parameters
         ----------
-        eps: float
-            Погрешность
+        eps: Погрешность
         """
         super().__init__()
         self.eps = eps
@@ -132,11 +123,9 @@ class SoftmaxCrossEntropy(Loss):
     def _output(self) -> float:
         """
         Вычисление потерь
-
         Returns
         -------
-        float
-            Потеря
+        float: Потеря
         """
         # если сеть выдаёт вероятность принадлежности к одному классу
         if self.target.shape[1] == 0:
@@ -165,11 +154,9 @@ class SoftmaxCrossEntropy(Loss):
     def _input_grad(self) -> ndarray:
         """
         Вычисление градиента на входе
-
         Returns
         -------
-        ndarray
-            Градиент на входе
+        ndarray: Градиент на входе
         """
         if self.single_class:
             return unnormalize(self.softmax_preds - self.target)

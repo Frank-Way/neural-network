@@ -1,3 +1,6 @@
+"""
+Модуль с описанием классов, загружающих данные для обучения и тестов
+"""
 from os.path import join, exists
 from typing import Tuple, List
 
@@ -13,7 +16,21 @@ import sympy
 from utils import to_2d, mnist_labels_to_y, replace_chars, cartesian
 
 
-class MNISTDataLoader(object):
+class DataLoader(object):
+    """
+    Базовый класс
+    """
+    def __init__(self):
+        pass
+
+    def load(self):
+        """
+        Загрузка реализуется в наследниках
+        """
+        raise NotImplementedError
+
+
+class MNISTDataLoader(DataLoader):
     """
     Класс для загрузки набора рукописных цифр MNIST
     """
@@ -24,114 +41,117 @@ class MNISTDataLoader(object):
         ["test_labels", "t10k-labels-idx1-ubyte.gz"]
     ]
 
-    def __init__(self, path, scale_inputs=None):
+    def __init__(self, path: str):
+        """
+        Конструктор
+        Parameters
+        ----------
+        path: Путь к выборке
+        """
         self.path = path
 
-    def download(self):
+    def download(self) -> None:
+        """
+        Загрузка выборки в виде сжатого архива
+        """
         base_url = "http://yann.lecun.com/exdb/mnist/"
         for name in self.filename:
             print("Downloading " + name[1] + "...")
             request.urlretrieve(base_url + name[1], join(self.path, name[1]))
-            # request.urlretrieve(base_url + name[1], name[1])
         print("Download complete.")
 
-    def save(self):
+    def save(self) -> None:
+        """
+        Распаковка выборки и её сохранение в формате, удобном для дальнейшей
+        работы
+        """
         mnist = {}
         for name in self.filename[:2]:
             with gzip.open(join(self.path, name[1]), 'rb') as f:
-                mnist[name[0]] = np.frombuffer(f.read(), np.uint8, offset=16).reshape(-1, 28 * 28)
+                mnist[name[0]] = np.frombuffer(f.read(), np.uint8,
+                                               offset=16).reshape(-1, 28 * 28)
         for name in self.filename[-2:]:
             with gzip.open(join(self.path, name[1]), 'rb') as f:
-                mnist[name[0]] = mnist_labels_to_y(np.frombuffer(f.read(), np.uint8, offset=8))
+                mnist[name[0]] = mnist_labels_to_y(np.frombuffer(f.read(),
+                                                                 np.uint8,
+                                                                 offset=8))
         with open(join(self.path, "mnist.pkl"), 'wb') as f:
             pickle.dump(mnist, f)
         print("Save complete.")
 
-    def load(self):
+    def load(self) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
+        """
+        Чтение выборки
+        Returns
+        -------
+        Tuple[ndarray, ndarray, ndarray, ndarray]:
+            Входные значения для обучения, входные значения для тестов,
+            выходные значения для обучения, выходные значения для тестов
+        """
         if not exists(join(self.path, "mnist.pkl")):
             self.download()
             self.save()
         with open(join(self.path, "mnist.pkl"), 'rb') as f:
             mnist = pickle.load(f)
-        return mnist["training_images"], mnist["test_images"], mnist["training_labels"], mnist["test_labels"]
+        return (mnist["training_images"], mnist["test_images"],
+                mnist["training_labels"], mnist["test_labels"])
 
 
-class ApproximationDataLoader(object):
+class ApproximationDataLoader(DataLoader):
     """
     Класс для загрузки данных для обучения для задачи аппроксимации
     функции
     """
-    p_to_test = 0.30
-    p_to_extend = 0.15
     sep = "/"
 
-    def __init__(self, path: str,
+    def __init__(self, inputs: int,
+                 fun_name: str,
+                 size: int,
                  limits: List[List[float]],
-                 scale_inputs: bool = False):
+                 scale_inputs: bool = False,
+                 p_to_test: float = 0.3,
+                 p_to_extend: float = 0.0) -> None:
         """
         Конструктор
-
         Parameters
         ----------
-        limits : List[List[float, float]]
-            Список, каждое значение которого представляет собой список
-            минимального и максимального значения для переменной
-        path: str
-            Путь к файлу с выборкой
-        scale_inputs: bool
-            Скалировать ли входные данные?
+        inputs: Количество входов
+        fun_name: Символическая запись функции
+        size: Размер выборки
+        limits: Границы для входных переменных
+        scale_inputs: Скалировать входы к [0;1]?
+        p_to_test: Сколько процентов составляет тестовая выборка
+        p_to_extend: На сколько процентов расширять входные значения в выборке
         """
-        self.path = path
         self.limits = limits
         self.scale_inputs = scale_inputs
+        self.expression = fun_name
 
-        splitted_by_sep_path = self.path.split(self.sep)
+        self.p_to_test = p_to_test
+        self.p_to_extend = p_to_extend
 
-        self.folder = join(*(splitted_by_sep_path[:-1]))
-        self.filename = splitted_by_sep_path[-1:][0]
-        self.extension = self.filename.split(".")[-1]
+        self.inputs = inputs
+        self.input_symbols = [sympy.Symbol(f"x{ii + 1}")
+                              for ii in range(self.inputs)]
 
-        self.inputs = int(self.folder.split(self.sep)[-1])
-        self.input_symbols = [sympy.Symbol(f"x{ii + 1}") for ii in range(self.inputs)]
-
-        self.expression = self.filename.split('_')[0]
         self.simplified_expression = sympy.simplify(self.expression)
         self.str_expression = replace_chars(str(self.simplified_expression))
 
-        self.function = sympy.lambdify(self.input_symbols, self.simplified_expression)
+        self.function = sympy.lambdify(self.input_symbols,
+                                       self.simplified_expression)
 
-        self.train_size = int(self.filename.split("_")[-1].split(".")[0])
-        # self.train_size = np.power(self.size, self.inputs)
+        self.train_size = size
         self.test_size = int(self.train_size * self.p_to_test)
-
-        self.modified_path = join(self.folder, f"{self.str_expression}_{self.train_size}.{self.extension}")
 
     def load(self) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
         """
         Загружает (или генерирует) обучающую выборку
-
         Returns
         -------
-        Tuple
-            0: ndarray
-                Массив входных значений для обучения
-            1: ndarray
-                Массив входных значений для тестов
-            2: ndarray
-                Массив выходных значений для обучения
-            3: ndarray
-                Массив выходных значений для тестов
+        Tuple[ndarray, ndarray, ndarray, ndarray]:
+            Входные значения для обучения, входные значения для тестов,
+            выходные значения для обучения, выходные значения для тестов
         """
-
-        # if exists(self.path):
-        #     with open(self.path, 'rb') as f:
-        #         data = pickle.load(f)
-        # elif exists(self.modified_path):
-        #     with open(self.modified_path, 'rb') as f:
-        #         data = pickle.load(f)
-        # else:
-        #     data = self.generate()
-
         data = self.generate()
 
         if self.scale_inputs:
@@ -152,14 +172,10 @@ class ApproximationDataLoader(object):
         Returns
         -------
         dict
-            "x_train": ndarray
-                Массив входных значений для обучения
-            "x_test": ndarray
-                Массив входных значений для тестов
-            "y_train": ndarray
-                Массив выходных значений для обучения
-            "y_test": ndarray
-                Массив выходных значений для тестов
+            "x_train": Массив входных значений для обучения
+            "x_test":  Массив входных значений для тестов
+            "y_train": Массив выходных значений для обучения
+            "y_test":  Массив выходных значений для тестов
         """
         x_train_list = []
         x_train_extended_list = []
@@ -174,7 +190,8 @@ class ApproximationDataLoader(object):
             delta = np.abs(right - left)
             lleft = left - self.p_to_extend * delta
             rright = right + self.p_to_extend * delta
-            x_train_extended_list.append(np.linspace(lleft, rright, num=self.train_size))
+            x_train_extended_list.append(np.linspace(lleft, rright,
+                                                     num=self.train_size))
 
         x_train = cartesian(tuple(x_train_list))
         x_train_extended = cartesian(tuple(x_train_extended_list))
@@ -184,7 +201,8 @@ class ApproximationDataLoader(object):
 
         extended_valid = True
         try:
-            y_train_extended = self.function(*[x_train_extended[:, ii] for ii in range(self.inputs)])
+            y_train_extended = self.function(*[x_train_extended[:, ii]
+                                               for ii in range(self.inputs)])
         except ValueError:
             extended_valid = False
 
@@ -196,8 +214,5 @@ class ApproximationDataLoader(object):
                 "x_test": x_test,
                 "y_train": y_train,
                 "y_test": y_test}
-
-        with open(self.modified_path, 'wb') as f:
-            pickle.dump(data, f)
 
         return data

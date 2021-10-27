@@ -1,3 +1,6 @@
+"""
+Модуль с описанием классов слоёв нейросети
+"""
 from typing import List
 
 import numpy as np
@@ -17,13 +20,10 @@ class Layer(object):
     def __init__(self, neurons: int, seed: int = None):
         """
         Конструктор слоя
-
         Parameters
         ----------
-        neurons: int
-            Количество нейронов в слое
-        seed: int
-            Сид для инициализации рандомайзера
+        neurons: Количество нейронов в слое
+        seed: Сид для инициализации рандомайзера
         """
         self.neurons = neurons
         self.first = True
@@ -43,18 +43,13 @@ class Layer(object):
                 inference: bool = False) -> ndarray:
         """
         Обработка входа набором операций
-
         Parameters
         ----------
-        inference: bool
-
-        input_: ndarray
-            Массив входов
-
+        inference: Обратный проход?
+        input_: Массив входов
         Returns
         -------
-        ndarray
-            Выход
+        ndarray: Выход
         """
         if self.first:
             self._setup_layer(input_)
@@ -71,18 +66,13 @@ class Layer(object):
 
     def backward(self, output_grad: ndarray) -> ndarray:
         """
-        Вычисление градиенты в обратном направлении через набор
-        операций
-
+        Вычисление градиенты в обратном направлении через набор операций
         Parameters
         ----------
-        output_grad: ndarray
-            Градиент на выходе
-
+        output_grad: Градиент на выходе
         Returns
         -------
-        ndarray
-            Градиент на входе
+        ndarray: Градиент на входе
         """
         assert_same_shape(self.output, output_grad)
 
@@ -96,11 +86,7 @@ class Layer(object):
 
     def _param_grads(self) -> None:
         """
-        Извлечение _param_grads из операций в слое
-
-        Returns
-        -------
-        None
+        Извлечение градиентов по параметрам из операций в слое
         """
         self.param_grads = []
         for operation in self.operations:
@@ -109,11 +95,7 @@ class Layer(object):
 
     def _params(self) -> None:
         """
-        Извлечение _params из слоя
-
-        Returns
-        -------
-        None
+        Извлечение параметров операций из слоя
         """
         self.params = []
         for operation in self.operations:
@@ -132,14 +114,12 @@ class Dense(Layer):
                  weight_init: str = "standard"):
         """
         Конструктор полносвязного слоя
-        Функция активации по умолчанию - сигмоида
-
         Parameters
         ----------
-        neurons: int
-            Количество нейронов в слое
-        activation: Operation
-            Функция активации
+        weight_init : Способ инициализации весов
+        dropout : Вероятность исключения нейронов из слоя
+        neurons: Количество нейронов в слое
+        activation: Функция активации
         """
         super().__init__(neurons)
         self.activation = activation
@@ -149,15 +129,9 @@ class Dense(Layer):
     def _setup_layer(self, input_: ndarray) -> None:
         """
         Определение операций и их параметров для полносвязного слоя
-
         Parameters
         ----------
-        input_: ndarray
-            Массив входных значений
-
-        Returns
-        -------
-
+        input_: Массив входных значений
         """
         if self.seed:
             np.random.seed(self.seed)
