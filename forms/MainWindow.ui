@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1000</width>
+    <height>800</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>15</pointsize>
+   </font>
+  </property>
+  <property name="contextMenuPolicy">
+   <enum>Qt::DefaultContextMenu</enum>
+  </property>
+  <property name="windowTitle">
+   <string>Обучение нейронных сетей для аппроксимации математических функций</string>
+  </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
+  </property>
+  <property name="documentMode">
+   <bool>false</bool>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="0">
+     <widget class="QPushButton" name="startButton">
+      <property name="text">
+       <string>Запуск</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QPushButton" name="exitButton">
+      <property name="text">
+       <string>Выход</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0" colspan="2">
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="tab_1">
+       <attribute name="title">
+        <string>Настройка</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="2">
+         <widget class="QGroupBox" name="layersGroupBox">
+          <property name="title">
+           <string>Сеть</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_6">
+           <item row="0" column="0">
+            <widget class="QLabel" name="layersLabel">
+             <property name="text">
+              <string>Количествово слоёв</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QSpinBox" name="layersSpinBox">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <widget class="QTableWidget" name="layersTable">
+             <property name="columnCount">
+              <number>3</number>
+             </property>
+             <column/>
+             <column/>
+             <column/>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QGroupBox" name="inputsGroupBox">
+          <property name="title">
+           <string>Выборка</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="6" column="3">
+            <widget class="QLineEdit" name="sampleSizeEdit">
+             <property name="placeholderText">
+              <string>128</string>
+             </property>
+             <property name="clearButtonEnabled">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0" colspan="4">
+            <widget class="QTextEdit" name="functionTextEdit">
+             <property name="placeholderText">
+              <string>x1^2-sqrt(x)*arcsin(x/5)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="3">
+            <widget class="QLineEdit" name="extendEdit">
+             <property name="placeholderText">
+              <string>0.15</string>
+             </property>
+             <property name="clearButtonEnabled">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0" colspan="4">
+            <widget class="QTableWidget" name="inputsMinMaxTable">
+             <property name="rowCount">
+              <number>0</number>
+             </property>
+             <property name="columnCount">
+              <number>2</number>
+             </property>
+             <column/>
+             <column/>
+            </widget>
+           </item>
+           <item row="7" column="0" colspan="2">
+            <widget class="QLabel" name="testSizeLabel">
+             <property name="text">
+              <string>Тестовая часть</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0" colspan="4">
+            <widget class="QLabel" name="inputsMinMaxLabel">
+             <property name="text">
+              <string>Ограничения входов</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0" colspan="3">
+            <widget class="QLabel" name="sampleSizeLabel">
+             <property name="text">
+              <string>Размер выборки</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="2">
+            <widget class="QLabel" name="inputsLabel">
+             <property name="text">
+              <string>Кол-во входов</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="functionLabel">
+             <property name="text">
+              <string>F(X1)=</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="3">
+            <widget class="QLineEdit" name="testSizeEdit">
+             <property name="placeholderText">
+              <string>0.3</string>
+             </property>
+             <property name="clearButtonEnabled">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0" colspan="2">
+            <widget class="QLabel" name="extendLabel">
+             <property name="text">
+              <string>Расширение</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2" colspan="2">
+            <widget class="QSpinBox" name="inputsSpinBox">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="3">
+            <widget class="QPushButton" name="plotFunctionButton">
+             <property name="text">
+              <string>График</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0" colspan="3">
+            <widget class="QPushButton" name="validateFunctionButton">
+             <property name="text">
+              <string>Проверка</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QGroupBox" name="trainGroupBox">
+          <property name="title">
+           <string>Обучение</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="0" column="0">
+            <widget class="QLabel" name="lrStartLabel">
+             <property name="text">
+              <string>Начальная скорость</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="lrEdit">
+             <property name="placeholderText">
+              <string>0.1</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="lrFinalLabel">
+             <property name="text">
+              <string>Конечная скорость</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="lrFinalEdit">
+             <property name="placeholderText">
+              <string>0.001</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="decayLabel">
+             <property name="text">
+              <string>Способ снижения</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QComboBox" name="decayComboBox">
+             <property name="insertPolicy">
+              <enum>QComboBox::InsertAtBottom</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="epochsLabel">
+             <property name="text">
+              <string>Кол-во эпох</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLineEdit" name="epochsEdit">
+             <property name="placeholderText">
+              <string>1000</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="queryLabel">
+             <property name="text">
+              <string>Кол-во опросов</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLineEdit" name="queryEdit">
+             <property name="placeholderText">
+              <string>10</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="batchSizeLabel">
+             <property name="text">
+              <string>Размер пакета</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QLineEdit" name="batchSizeEdit">
+             <property name="placeholderText">
+              <string>64</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="stoppingLabel">
+             <property name="text">
+              <string>Предв. остановка</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="1">
+            <widget class="QCheckBox" name="stoppingCheckBox">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="0">
+            <widget class="QLabel" name="printLabel">
+             <property name="text">
+              <string>Промеж. рез-ты</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="1">
+            <widget class="QCheckBox" name="printCheckBox">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0">
+            <widget class="QLabel" name="plotsLabel">
+             <property name="text">
+              <string>Графики</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="1">
+            <widget class="QCheckBox" name="plotsCheckBox">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="0">
+            <widget class="QLabel" name="lossLabel">
+             <property name="text">
+              <string>Функция потерь</string>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="1">
+            <widget class="QComboBox" name="lossComboBox"/>
+           </item>
+           <item row="10" column="0">
+            <widget class="QLabel" name="optimizerLabel">
+             <property name="text">
+              <string>Оптимизатор</string>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="1">
+            <widget class="QComboBox" name="optimizerComboBox"/>
+           </item>
+           <item row="11" column="0">
+            <widget class="QLabel" name="momentumLabel">
+             <property name="text">
+              <string>Инерция</string>
+             </property>
+            </widget>
+           </item>
+           <item row="11" column="1">
+            <widget class="QLineEdit" name="momentumEdit">
+             <property name="placeholderText">
+              <string>0.8</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="title">
+        <string>Вывод</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_7">
+        <item row="0" column="0">
+         <widget class="QTextEdit" name="outputEdit">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+          <property name="placeholderText">
+           <string>Здесь будет выведена информация о результатах обучения</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="clearOutputButton">
+          <property name="text">
+           <string>Очистить</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_3">
+       <attribute name="title">
+        <string>Графики</string>
+       </attribute>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

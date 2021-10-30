@@ -48,22 +48,18 @@ class Configuration(object):
         path: Путь к файлу с настройками
         """
         self.path = path
-        self.load(path)
 
-    def load(self, path: str) -> None:
+    def load(self) -> None:
         """
         Загрузка настроек из файла
-        Parameters
-        ----------
-        path: Путь к файлу с настройками
         """
-        if exists(path):
-            with open(path, 'r') as file:
+        if exists(self.path):
+            with open(self.path, 'r') as file:
                 values = json.load(file)
                 self.values = values
                 self.__dict__.update(values)
         else:
-            raise ConfigNotFoundException(path)
+            raise ConfigNotFoundException(self.path)
 
     def save(self, path: str) -> None:
         """

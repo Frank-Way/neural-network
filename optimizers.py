@@ -35,10 +35,10 @@ class Optimizer(object):
         """
         if not self.decay_type:
             return
-        elif self.decay_type == "exponential":
+        elif self.decay_type == "exp":
             self.decay_per_epoch = np.power(self.final_lr / self.lr,
                                             1.0 / (self.max_epochs - 1))
-        elif self.decay_type == "linear":
+        elif self.decay_type == "lin":
             self.decay_per_epoch = ((self.lr - self.final_lr) /
                                     (self.max_epochs - 1))
 
@@ -49,10 +49,10 @@ class Optimizer(object):
         if not self.decay_type:
             return
 
-        if self.decay_type == 'exponential':
+        if self.decay_type == 'exp':
             self.lr *= self.decay_per_epoch
 
-        elif self.decay_type == 'linear':
+        elif self.decay_type == 'lin':
             self.lr -= self.decay_per_epoch
 
     def step(self,

@@ -7,7 +7,7 @@
     "limits": [
       [0.0, 1.0],
       [0.0, 1.0]],
-    "size": 64,
+    "size": 128,
     "scale_inputs": false,
     "p_to_test": 0.3,
     "p_to_extend": 0.2
@@ -16,9 +16,9 @@
     "seed": 0,
     "use_seed": false,
     "lr": 0.1,
-    "final_lr": 0.005,
-    "decay_type": "exponential",
-    "epochs": 10000,
+    "final_lr": 0.001,
+    "decay_type": "lin",
+    "epochs": 100,
     "query_times": 10,
     "batch_size": 64,
     "early_stopping": false,
@@ -30,8 +30,15 @@
     "trainer": "t"
   },
   "layers": {
-    "count": 2,
+    "count": 3,
     "config": [
+      {
+        "neurons": 16,
+        "class": "dense",
+        "activation": "tanh",
+        "dropout": 1.0,
+        "weight_init": "glorot"
+      },
       {
         "neurons": 16,
         "class": "dense",
