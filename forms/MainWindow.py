@@ -25,4 +25,6 @@ class MainWindow(MainWindowSlots):
     def connect_slots(self):
         self.inputsSpinBox.valueChanged.connect(self.inputs_count_changed)
         self.layersSpinBox.valueChanged.connect(self.layers_count_changes)
+        self.validateFunctionButton.clicked.connect(self.validate_function)
+        self.startButton.clicked.connect(self.run)
 
