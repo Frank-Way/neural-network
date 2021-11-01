@@ -220,6 +220,7 @@ def show_results(losses: List[float],
     t = y_test
     e = t - y
 
+    fig = plt.figure()
     ax1 = plt.subplot(122)
     ax1.plot(x, y, label='модель')
     ax1.plot(x, t, label='функция')
@@ -240,7 +241,7 @@ def show_results(losses: List[float],
     ax3.set(xlabel='x', ylabel='MAE(x)')
     ax3.grid()
 
-    plt.show()
+    return fig, (ax1, ax2, ax3)
 
 
 def show_results3d(losses: List[float],
@@ -291,7 +292,7 @@ def show_results3d(losses: List[float],
     ax3.set(xlabel="x1", ylabel="x2", zlabel="MAE(x1, x2)")
     ax3.grid()
 
-    plt.show()
+    return fig, (ax1, ax2, ax3)
 
 
 def mnist_labels_to_y(labels: ndarray) -> ndarray:

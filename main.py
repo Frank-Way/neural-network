@@ -4,7 +4,7 @@ from os.path import join
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow
 
 from config import Configuration
-from forms.MainWindow import MainWindow
+from forms.MainWindow import MainWindow, OutLog
 
 # CONFIG_DIR = "settings"
 # CONFIG_NAME = "config"
@@ -34,5 +34,8 @@ if __name__ == '__main__':
     ui = MainWindow(window)
     # Отображаем окно
     window.show()
+    # Переназначаем стандартный вывод на виджет outputEdit
+    sys.stdout = OutLog(ui.outputEdit)
+    sys.stderr = OutLog(ui.outputEdit)
     # Обрабатываем нажатие на кнопку окна "Закрыть"
     sys.exit(app.exec_())

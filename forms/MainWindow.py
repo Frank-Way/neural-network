@@ -1,5 +1,9 @@
 from os.path import join
 
+from PyQt5 import QtGui
+from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtWidgets import QTextEdit
+
 from forms.MainWindowSlots import MainWindowSlots
 
 
@@ -27,4 +31,15 @@ class MainWindow(MainWindowSlots):
         self.layersSpinBox.valueChanged.connect(self.layers_count_changes)
         self.validateFunctionButton.clicked.connect(self.validate_function)
         self.startButton.clicked.connect(self.run)
+        self.exitButton.clicked.connect(QCoreApplication.instance().quit)
+        self.clearOutputButton.clicked.connect(self.clear_output)
 
+
+class OutLog:
+    def __init__(self, edit: QTextEdit):
+        self.edit = edit
+
+    def write(self, m):
+
+        self.edit.moveCursor(QtGui.QTextCursor.End)
+        self.edit.insertPlainText( m )

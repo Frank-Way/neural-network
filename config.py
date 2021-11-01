@@ -49,10 +49,12 @@ class Configuration(object):
         """
         self.path = path
 
-    def load(self) -> None:
+    def load(self, path: str = None) -> None:
         """
         Загрузка настроек из файла
         """
+        if path is not None:
+            self.path = path
         if exists(self.path):
             with open(self.path, 'r') as file:
                 values = json.load(file)
@@ -61,15 +63,21 @@ class Configuration(object):
         else:
             raise ConfigNotFoundException(self.path)
 
-    def save(self, path: str) -> None:
+    def save(self, path: str = None) -> None:
         """
         Созранение настроек в файл
         Parameters
         ----------
         path: Путь к файлу с настройками
         """
-        with open(path, 'w') as file:
-            json.dump(self.values, file)
+        if path is not None:
+            self.path = path
+        with open(self.path, 'w') as file:
+            json.dump(self.values, file, indent=4)
+
+    def update(self, values: dict) -> None:
+        self.values = values
+        self.__dict__.update(values)
 
     def _get_net(self) -> NeuralNetwork:
         """

@@ -1,16 +1,25 @@
+import sys
+import traceback
 from os.path import exists
 from typing import List
 
 import numpy as np
 import sympy
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QMessageBox, QComboBox, QTableWidgetItem
+from PyQt5.QtCore import QObject, pyqtSignal, QRunnable, pyqtSlot, QThreadPool
+from PyQt5.QtWidgets import QMessageBox, QComboBox, QGridLayout, QMdiSubWindow
+from matplotlib.backends.backend_qt5agg import FigureCanvasQT, FigureCanvasQTAgg, FigureCanvasAgg, NavigationToolbar2QT
+import matplotlib
+from matplotlib.backends.backend_template import FigureCanvas
 
 from forms.UI_MainWindow import Ui_MainWindow
 from config import Configuration
 from losses import MeanSquaredError, SoftmaxCrossEntropy
 from operations import Linear, Sigmoid, Tanh, ReLU, LeakyReLU
 from optimizers import SGD, SGDMomentum
+
+
+matplotlib.use('Qt5Agg')
 
 
 class MainWindowSlots(Ui_MainWindow):
@@ -35,6 +44,8 @@ class MainWindowSlots(Ui_MainWindow):
     encoder = dict(zip(decoder.values(), decoder.keys()))
 
     def init(self):
+        self._init_limit_edits()
+        self._init_layer_edits_and_comboboxes()
         self.inputsMinMaxTable. \
             setHorizontalHeaderLabels("x_min;x_max".split(";"))
         self.layersTable. \
@@ -44,6 +55,8 @@ class MainWindowSlots(Ui_MainWindow):
         self.load_losses(self.losses.keys())
         self.load_decay_types(self.decay_types.keys())
         self.load_optimizers(self.optimizers.keys())
+
+        self.threadpool = QThreadPool()
 
     def load(self, path: str):
         self.path = path
@@ -83,11 +96,46 @@ class MainWindowSlots(Ui_MainWindow):
                                              layers["config"][ii]["activation"]]))
                 self.dropout_edits[ii].setText(str(self.config.layers["config"][ii]["dropout"]))
 
-    def _set_combobox_item(self, cb: QComboBox, property_name: str) -> None:
-        cb. \
-            setCurrentIndex(cb.
-                            findText(self.
-                                     decoder[self.config.train[property_name]]))
+    def load_decay_types(self, decay_types: List[str]) -> None:
+        self.decayComboBox.addItems(decay_types)
+
+    def load_losses(self, losses: List[str]) -> None:
+        self.lossComboBox.addItems(losses)
+
+    def load_optimizers(self, optimizers: List[str]) -> None:
+        self.optimizerComboBox.addItems(optimizers)
+
+    def load_activations(self, activations: List[str], cb: QComboBox) -> None:
+        cb.addItems(activations)
+
+    def inputs_count_changed(self):
+        self._init_limit_edits()
+        if self.inputs == 1:
+            self.inputsMinMaxLabel.setText("F(X1) =")
+        elif self.inputs == 2:
+            self.inputsMinMaxLabel.setText("F(X1, X2) =")
+        else:
+            self.inputsMinMaxLabel.setText(f"F(X1, ..., X{self.inputs}) =")
+
+    def layers_count_changes(self):
+        self._init_layer_edits_and_comboboxes()
+
+    def validate_function(self):
+        self._read_function()
+
+        valid = self._is_function_valid()
+
+        if not valid:
+            QMessageBox.about(self.centralwidget, "Ошибка",
+                              "Не удалось прочитать функцию")
+        else:
+            QMessageBox.about(self.centralwidget, "Успех",
+                              "Функция успешно прочитана")
+
+    def plot_function(self):
+        if self.function is None:
+            self._read_function()
+        pass
 
     def read(self):
         read_failure = False
@@ -251,21 +299,32 @@ class MainWindowSlots(Ui_MainWindow):
         if not valid:
             return message
 
-
     def run(self):
         self.read()
         msg = self.validate()
         if msg is not None:
             QMessageBox.warning(self.centralwidget, "Ошибка", msg)
         else:
-            self.config.values = self.values
-            print(self.values)
+            self.startButton.setEnabled(False)
+            self.config.update(self.values)
+            self.config.save()
+            data = self.config.get_data()
+            trainer = self.config.get_trainer()
+            fit_params = self.config.get_fit_params(data)
 
+            # Pass the function to execute
+            worker = _Worker(fn=trainer.fit,
+                             kwargs=fit_params)  # Any other args, kwargs are passed to the run function
+            worker.signals.result.connect(self._output_results)
+            worker.signals.finished.connect(lambda: self.startButton.setEnabled(True))
 
-    def exit(self):
-        pass
+            # Execute
+            self.threadpool.start(worker)
 
-    def inputs_count_changed(self):
+    def clear_output(self):
+        self.outputEdit.clear()
+
+    def _init_limit_edits(self):
         self.inputs = int(self.inputsSpinBox.value())
         self.inputsMinMaxTable.clear()
         self.inputsMinMaxTable.setRowCount(self.inputs)
@@ -279,62 +338,8 @@ class MainWindowSlots(Ui_MainWindow):
                 edit.setPlaceholderText(str(float(jj)))
                 self.limit_edits[ii][jj] = edit
                 self.inputsMinMaxTable.setCellWidget(ii, jj, edit)
-        if self.inputs == 1:
-            self.inputsMinMaxLabel.setText("F(X1) =")
-        elif self.inputs == 2:
-            self.inputsMinMaxLabel.setText("F(X1, X2) =")
-        else:
-            self.inputsMinMaxLabel.setText(f"F(X1, ..., X{self.inputs}) =")
 
-    def _read_function(self):
-        function = str(self.functionTextEdit.toPlainText()).lower()
-        input_symbols = [sympy.Symbol(f"x{ii + 1}")
-                         for ii in range(self.inputs)]
-        simplified_expression = sympy.simplify(function)
-        self.str_expression = str(simplified_expression)
-
-        self.function = sympy.lambdify(input_symbols,
-                                       simplified_expression)
-
-    def _is_function_valid(self) -> bool:
-        valid = True
-        try:
-            res = self.function(*np.random.random(self.inputs))
-        except NameError:
-            valid = False
-
-        if type(res) != np.float64:
-            valid = False
-
-        return valid
-
-    def validate_function(self):
-        self._read_function()
-
-        valid = self._is_function_valid()
-
-        if not valid:
-            QMessageBox.about(self.centralwidget, "Ошибка",
-                              "Не удалось прочитать функцию")
-        else:
-            QMessageBox.about(self.centralwidget, "Успех",
-                              "Функция успешно прочитана")
-
-    def plot_function(self):
-        if self.function is None:
-            self._read_function()
-        pass
-
-    def load_decay_types(self, decay_types: List[str]) -> None:
-        self.decayComboBox.addItems(decay_types)
-
-    def load_losses(self, losses: List[str]) -> None:
-        self.lossComboBox.addItems(losses)
-
-    def load_optimizers(self, optimizers: List[str]) -> None:
-        self.optimizerComboBox.addItems(optimizers)
-
-    def layers_count_changes(self):
+    def _init_layer_edits_and_comboboxes(self):
         self.layers = int(self.layersSpinBox.value())
         self.layersTable.clearContents()
         self.layersTable.setRowCount(self.layers)
@@ -363,8 +368,72 @@ class MainWindowSlots(Ui_MainWindow):
             self.dropout_edits.append(edit)
             self.layersTable.setCellWidget(ii, 2, edit)
 
-    def load_activations(self, activations: List[str], cb: QComboBox) -> None:
-        cb.addItems(activations)
+    def _set_combobox_item(self, cb: QComboBox, property_name: str) -> None:
+        cb. \
+            setCurrentIndex(cb.
+                            findText(self.
+                                     decoder[self.config.train[property_name]]))
 
-    def clear_output(self):
-        self.outputEdit.clear()
+    def _read_function(self):
+        function = str(self.functionTextEdit.toPlainText()).lower()
+        input_symbols = [sympy.Symbol(f"x{ii + 1}")
+                         for ii in range(self.inputs)]
+        simplified_expression = sympy.simplify(function)
+        self.str_expression = str(simplified_expression)
+
+        self.function = sympy.lambdify(input_symbols,
+                                       simplified_expression)
+
+    def _is_function_valid(self) -> bool:
+        valid = True
+        try:
+            res = self.function(*np.random.random(self.inputs))
+        except NameError:
+            valid = False
+
+        if type(res) != np.float64:
+            valid = False
+
+        return valid
+
+    def _output_results(self, results):
+        print(self.config.get_str_results(results))
+        graph_results = self.config.get_graph_results(results)
+        if graph_results is not None:
+            graph_function, graph_params = graph_results
+            fig, axes = graph_function(**graph_params)
+
+            sub = QMdiSubWindow(self.mdiArea)
+            canvas = FigureCanvasQTAgg(fig)
+            toolbar = NavigationToolbar2QT(canvas, sub)
+            sub.layout().addWidget(toolbar)
+            sub.layout().addWidget(canvas)
+            sub.show()
+
+
+
+class _WorkerSignals(QObject):
+    finished = pyqtSignal()
+    error = pyqtSignal(tuple)
+    result = pyqtSignal(object)
+
+
+class _Worker(QRunnable):
+    def __init__(self, fn, kwargs):
+        super(_Worker, self).__init__()
+        self.fn = fn
+        self.kwargs = kwargs
+        self.signals = _WorkerSignals()
+
+    @pyqtSlot()
+    def run(self):
+        try:
+            result = self.fn(**self.kwargs)
+        except:
+            traceback.print_exc()
+            exctype, value = sys.exc_info()[:2]
+            self.signals.error.emit((exctype, value, traceback.format_exc()))
+        else:
+            self.signals.result.emit(result)  # Return the result of the processing
+        finally:
+            self.signals.finished.emit()  # Done
