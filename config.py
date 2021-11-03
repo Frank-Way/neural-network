@@ -2,6 +2,7 @@
 Модуль с описанием класса, хранящего настройки для обучения
 """
 import json
+import os
 from typing import Tuple
 from os.path import exists
 
@@ -10,7 +11,7 @@ import numpy as np
 from data_loaders import MNISTDataLoader, ApproximationDataLoader, DataLoader
 from exceptions import OptimizerNotFoundException, \
     DataLoaderNotFoundException, ConfigNotFoundException, \
-    TooManyInputsException, NotImplementedDataLoaderGraphException
+    TooManyInputsException, NotImplementedDataLoaderGraphException, NoPathToConfigSpecifiedException
 from layers import Dense
 from losses import MeanSquaredError, SoftmaxCrossEntropy
 from networks import NeuralNetwork
@@ -26,56 +27,126 @@ class Configuration(object):
     Класс, представляющий обёртку вокруг словаря, хранящем
     конфигурации сети, обучения и входных данных
     """
+    # декодировщик значений из конфигурации в нужные классы
     decoder = {"dense": Dense, "sigmoid": Sigmoid, "linear": Linear,
                "leakyrelu": LeakyReLU, "relu": ReLU, "tanh": Tanh,
                "mse": MeanSquaredError, "sce": SoftmaxCrossEntropy,
                "sgd": SGD, "sgdm": SGDMomentum, "t": Trainer,
                "mnist": MNISTDataLoader, "ap": ApproximationDataLoader}
-    layers: dict
-    inputs: dict
-    train: dict
-    values: dict
-    model: NeuralNetwork
-    trainer: Trainer
-    optimizer: Optimizer
-    dl: DataLoader
+    layers: dict  # конфигурация слоёв
+    inputs: dict  # конфигурация входных данных
+    train: dict   # конфигурация обучения
+    values: dict  # объединение конфигураций
+    model: NeuralNetwork  # нейросеть
+    trainer: Trainer  # тренер
+    optimizer: Optimizer  # оптимизатор
+    dl: DataLoader  # загрузчик данных
 
-    def __init__(self, path: str):
+    def __init__(self, path: str = None):
         """
         Конструктор
         Parameters
         ----------
         path: Путь к файлу с настройками
         """
-        self.path = path
+        if path is not None:
+            self.path = path
+            os.makedirs(os.path.dirname(self.path), exist_ok=True)
 
     def load(self, path: str = None) -> None:
         """
-        Загрузка настроек из файла
-        """
-        if path is not None:
-            self.path = path
-        if exists(self.path):
-            with open(self.path, 'r') as file:
-                values = json.load(file)
-                self.values = values
-                self.__dict__.update(values)
-        else:
-            raise ConfigNotFoundException(self.path)
-
-    def save(self, path: str = None) -> None:
-        """
-        Созранение настроек в файл
+        Загрузка настроек из файла. Если путь не был задан ранее, то
+        генерируется исключение. Если путь задан, но файл отсутствует, то
+        генерируется конфигурация по умолчанию
         Parameters
         ----------
         path: Путь к файлу с настройками
         """
         if path is not None:
             self.path = path
-        with open(self.path, 'w') as file:
-            json.dump(self.values, file, indent=4)
+        if self.path is not None:
+            if exists(self.path):
+                with open(self.path, 'r') as file:
+                    values = json.load(file)
+                    self.update(values)
+            else:
+                self.generate_default_config()
+        else:
+            raise NoPathToConfigSpecifiedException()
+
+    def save(self, path: str = None) -> None:
+        """
+        Сохранение настроек в файл. Если путь не указан, то генерируется
+        соответствующее исключение
+        Parameters
+        ----------
+        path: Путь к файлу с настройками
+        """
+        if path is not None:
+            self.path = path
+        if self.path is not None:
+            with open(self.path, 'w') as file:
+                json.dump(self.values, file, indent=4)
+        else:
+            raise NoPathToConfigSpecifiedException()
+
+    def generate_default_config(self) -> None:
+        """
+        Генерация конфигурации по умолчанию и обновление экземпляра в
+        соответствии с ней
+        """
+        values = {"inputs": {"count": 1,
+                             "path": "",
+                             "data_loader": "ap",
+                             "function": "sin(pi*x1)",
+                             "limits": [[0.0, 1.0]],
+                             "size": 256,
+                             "scale_inputs": False,
+                             "p_to_test": 0.3,
+                             "p_to_extend": 0.1},
+                  "train": {"seed": 0,
+                            "use_seed": False,
+                            "lr": 0.1,
+                            "final_lr": 0.001,
+                            "decay_type": "lin",
+                            "epochs": 5000,
+                            "query_times": 10,
+                            "batch_size": 64,
+                            "early_stopping": True,
+                            "print_results": True,
+                            "show_plots": False,
+                            "momentum": 0.8,
+                            "loss": "mse",
+                            "optimizer": "sgd",
+                            "trainer": "t",
+                            "restarts": 1},
+                  "layers": {"count": 2,
+                             "config":
+                                 [
+                                     {
+                                         "neurons": 8,
+                                         "class": "dense",
+                                         "activation": "tanh",
+                                         "dropout": 1.0,
+                                         "weight_init": "glorot"},
+                                     {
+                                         "neurons": 1,
+                                         "class": "dense",
+                                         "activation": "linear",
+                                         "dropout": 1.0,
+                                         "weight_init": "glorot"}
+                                 ]
+                             }
+                  }
+        self.update(values)
 
     def update(self, values: dict) -> None:
+        """
+        Обновление экземпляра в соответствии с полученной конфигурацией
+        Parameters
+        ----------
+        values: Конфигуарция
+        """
         self.values = values
         self.__dict__.update(values)
 
@@ -251,3 +322,6 @@ class Configuration(object):
                 return
         else:
             raise NotImplementedDataLoaderGraphException(self.inputs["data_loader"])
+
+    def get_function_plot(self):
+        pass

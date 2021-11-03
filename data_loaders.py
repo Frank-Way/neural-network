@@ -68,11 +68,11 @@ class MNISTDataLoader(DataLoader):
         mnist = {}
         for name in self.filename[:2]:
             with gzip.open(join(self.path, name[1]), 'rb') as f:
-                mnist[name[0]] = np.frombuffer(f.read(), np.uint8,
+                mnist[name[0]] = np.frombuffer(f._read(), np.uint8,
                                                offset=16).reshape(-1, 28 * 28)
         for name in self.filename[-2:]:
             with gzip.open(join(self.path, name[1]), 'rb') as f:
-                mnist[name[0]] = mnist_labels_to_y(np.frombuffer(f.read(),
+                mnist[name[0]] = mnist_labels_to_y(np.frombuffer(f._read(),
                                                                  np.uint8,
                                                                  offset=8))
         with open(join(self.path, "mnist.pkl"), 'wb') as f:

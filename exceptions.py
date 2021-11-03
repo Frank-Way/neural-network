@@ -1,7 +1,6 @@
 """
 Модуль с описанием классов исключений
 """
-from data_loaders import DataLoader
 
 
 class ConfigNotFoundException(Exception):
@@ -25,10 +24,19 @@ class DataLoaderNotFoundException(Exception):
 class TooManyInputsException(Exception):
     """Слишком много входов для построения графиков"""
     def __init__(self, inputs: int):
-        super().__init__(f"Построение графиков не доступно для {inputs}-D входов")
+        super().__init__(f"Построение графиков не доступно для"
+                         f" {inputs}-D входов")
 
 
 class NotImplementedDataLoaderGraphException(Exception):
     """Нет возможности отрисовать графики"""
-    def __init__(self, data_loader: DataLoader):
-        super().__init__(f"Отрисовка графиков не доступна")
+    def __init__(self, msg: str = None):
+        super().__init__(f"Отрисовка графиков не доступна" +
+                         f"\n{msg}" if msg is not None else "")
+
+
+class NoPathToConfigSpecifiedException(Exception):
+    """Не задан путь к файлу с настройками"""
+    def __init__(self, msg: str = None):
+        super().__init__(f"Не указан путь к файлу с настройками" +
+                         f"\n{msg}" if msg is not None else "")

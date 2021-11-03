@@ -3,7 +3,7 @@
 обработки и форматирования данных, отрисовки графиков.
 """
 import os
-from typing import List, Tuple
+from typing import List, Tuple, Callable
 
 from PIL import Image
 import numpy as np
@@ -194,107 +194,6 @@ def batches_generator(x: ndarray,
         yield x_batch, y_batch
 
 
-def show_results(losses: List[float],
-                 x_test: ndarray,
-                 pred_test: ndarray,
-                 y_test: ndarray,
-                 function_name: str,
-                 neurons: List[int]):
-    """
-    Функия для отрисовки графика по результатам обучения нейросети, 
-    аппроксимирующей математические функции одной переменной
-    Parameters
-    ----------
-    losses: Список потерь
-    x_test: Массив входных значений
-    pred_test: Массив выходных значений
-    y_test: Массив требуемых выходных значений
-    function_name: Название функции
-    neurons: Количество нейронов
-    Returns
-    -------
-    None
-    """
-    x = x_test
-    y = pred_test
-    t = y_test
-    e = t - y
-
-    fig = plt.figure()
-    ax1 = plt.subplot(122)
-    ax1.plot(x, y, label='модель')
-    ax1.plot(x, t, label='функция')
-    ax1.set_title(f'воспроизведено с помощью {neurons[:-1]} нейронов')
-    ax1.set(xlabel='x', ylabel=function_name)
-    ax1.legend()
-    ax1.grid()
-
-    ax2 = plt.subplot(221)
-    ax2.plot(range(len(losses)), losses)
-    ax2.set_title('функция потерь')
-    ax2.set(xlabel='опросы', ylabel='потеря')
-    ax2.grid()
-
-    ax3 = plt.subplot(223)
-    ax3.plot(x, e)
-    ax3.set_title('макс. абс. ошибка')
-    ax3.set(xlabel='x', ylabel='MAE(x)')
-    ax3.grid()
-
-    return fig, (ax1, ax2, ax3)
-
-
-def show_results3d(losses: List[float],
-                   x_test: ndarray,
-                   pred_test: ndarray,
-                   y_test: ndarray,
-                   function_name: str,
-                   neurons: List[int]):
-    """
-    Функия для отрисовки графика по результатам обучения нейросети,
-    аппроксимирующей математические функции одной переменной
-    Parameters
-    ----------
-    losses: Список потерь
-    x_test: Массив входных значений
-    pred_test: Массив выходных значений
-    y_test: Массив требуемых выходных значений
-    function_name: Название функции
-    neurons: Количество нейронов
-    Returns
-    -------
-    None
-    """
-
-    x = x_test
-    y = pred_test
-    t = y_test
-    e = t - y
-
-    fig = plt.figure()
-    ax1 = fig.add_subplot(122, projection='3d')
-    ax1.scatter3D(x[:, 0], x[:, 1], y, label='модель')
-    ax1.scatter3D(x[:, 0], x[:, 1], t, label='функция')
-    ax1.set_title(f'воспроизведено с помощью {neurons[:-1]} нейронов')
-    ax1.set(xlabel="x1", ylabel="x2", zlabel=f"{function_name}")
-    ax1.legend()
-    ax1.grid()
-
-    ax2 = fig.add_subplot(221)
-    ax2.plot(range(len(losses)), losses)
-    ax2.set_title('функция потерь')
-    ax2.set(xlabel='опросы', ylabel='потеря')
-    ax2.grid()
-
-    ax3 = fig.add_subplot(223, projection='3d')
-    ax3.scatter3D(x[:, 0], x[:, 1], e)
-    ax3.set_title('макс. абс. ошибка')
-    ax3.set(xlabel="x1", ylabel="x2", zlabel="MAE(x1, x2)")
-    ax3.grid()
-
-    return fig, (ax1, ax2, ax3)
-
-
 def mnist_labels_to_y(labels: ndarray) -> ndarray:
     """
     Функция преобразования метки в набор набор признаков
@@ -369,3 +268,160 @@ def cartesian(arrays: Tuple[ndarray, ...]) -> ndarray:
         for j in range(1, arrays[k].size):
             out[j * m: (j + 1) * m, k + 1:] = out[0: m, k + 1:]
     return out
+
+
+def show_results(losses: List[float],
+                 x_test: ndarray,
+                 pred_test: ndarray,
+                 y_test: ndarray,
+                 function_name: str,
+                 neurons: List[int]) -> Tuple:
+    """
+    Функия для отрисовки графика по результатам обучения нейросети,
+    аппроксимирующей математические функции одной переменной
+    Parameters
+    ----------
+    losses: Список потерь
+    x_test: Массив входных значений
+    pred_test: Массив выходных значений
+    y_test: Массив требуемых выходных значений
+    function_name: Название функции
+    neurons: Количество нейронов
+    Returns
+    -------
+    Фигура и оси
+    """
+    x = x_test
+    y = pred_test
+    t = y_test
+    e = t - y
+
+    fig = plt.figure()
+    ax1 = plt.subplot(122)
+    ax1.plot(x, y, label='модель')
+    ax1.plot(x, t, label='функция')
+    ax1.set_title(f'воспроизведено с помощью {neurons[:-1]} нейронов')
+    ax1.set(xlabel='x', ylabel=function_name)
+    ax1.legend()
+    ax1.grid()
+
+    ax2 = plt.subplot(221)
+    ax2.plot(range(len(losses)), losses)
+    ax2.set_title('функция потерь')
+    ax2.set(xlabel='опросы', ylabel='потеря')
+    ax2.grid()
+
+    ax3 = plt.subplot(223)
+    ax3.plot(x, e)
+    ax3.set_title('макс. абс. ошибка')
+    ax3.set(xlabel='x', ylabel='MAE(x)')
+    ax3.grid()
+
+    return fig, (ax1, ax2, ax3)
+
+
+def show_results3d(losses: List[float],
+                   x_test: ndarray,
+                   pred_test: ndarray,
+                   y_test: ndarray,
+                   function_name: str,
+                   neurons: List[int]) -> Tuple:
+    """
+    Функия для отрисовки графика по результатам обучения нейросети,
+    аппроксимирующей математические функции одной переменной
+    Parameters
+    ----------
+    losses: Список потерь
+    x_test: Массив входных значений
+    pred_test: Массив выходных значений
+    y_test: Массив требуемых выходных значений
+    function_name: Название функции
+    neurons: Количество нейронов
+    Returns
+    -------
+    Фигура и оси
+    """
+
+    x = x_test
+    y = pred_test
+    t = y_test
+    e = t - y
+
+    fig = plt.figure()
+
+    ax1 = fig.add_subplot(122, projection='3d')
+    ax1.scatter3D(x[:, 0], x[:, 1], y, label='модель')
+    ax1.scatter3D(x[:, 0], x[:, 1], t, label='функция')
+    ax1.set_title(f'воспроизведено с помощью {neurons[:-1]} нейронов')
+    ax1.set(xlabel="x1", ylabel="x2", zlabel=f"{function_name}")
+    ax1.legend()
+    ax1.grid()
+
+    ax2 = fig.add_subplot(221)
+    ax2.plot(range(len(losses)), losses)
+    ax2.set_title('функция потерь')
+    ax2.set(xlabel='опросы', ylabel='потеря')
+    ax2.grid()
+
+    ax3 = fig.add_subplot(223, projection='3d')
+    ax3.scatter3D(x[:, 0], x[:, 1], e)
+    ax3.set_title('макс. абс. ошибка')
+    ax3.set(xlabel="x1", ylabel="x2", zlabel="MAE(x1, x2)")
+    ax3.grid()
+
+    return fig, (ax1, ax2, ax3)
+
+
+def show_function(function: Callable,
+                  limits: List[List[float]] = None) -> Tuple:
+    """
+    Построение графика функции в окрестности нуля или в заданных границах
+    Parameters
+    ----------
+    limits: Границы для входных переменных
+    function: Функия
+    Returns
+    -------
+    Фигура и оси
+    """
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    if limits is None:
+        length = 5
+        x = np.linspace(-length, length, num=100)
+    else:
+        x = np.linspace(limits[0][0], limits[0][1], num=100)
+    y = function(x)
+    ax1.plot(x, y)
+    ax1.set_title("Функция")
+    ax1.set(xlabel='x', ylabel='F(x)')
+    return fig, (ax1,)
+
+
+def show_function3d(function: Callable,
+                    limits: List[List[float]] = None) -> Tuple:
+    """
+    Построение графика функции в окрестности нуля или в заданных границах
+    Parameters
+    ----------
+    limits: Границы для входных переменных
+    function: Функия
+    Returns
+    -------
+    Фигура и оси
+    """
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111, projection="3d")
+    if limits is None:
+        length = 5
+        r = to_2d(np.linspace(-length, length, num=10))
+        x = cartesian((r, r))
+    else:
+        r1 = to_2d(np.linspace(limits[0][0], limits[0][1], num=10))
+        r2 = to_2d(np.linspace(limits[1][0], limits[1][1], num=10))
+        x = cartesian((r1, r2))
+    y = function(*[x[:, ii] for ii in range(2)])
+    ax1.scatter3D(x[:, 0], x[:, 1], y)
+    ax1.set_title("Функция")
+    ax1.set(xlabel="x1", ylabel="x2", zlabel="F(x1, x2)")
+    return fig, (ax1,)

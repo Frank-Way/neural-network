@@ -52,7 +52,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_1">
        <attribute name="title">
@@ -81,9 +81,15 @@
            </item>
            <item row="1" column="0" colspan="2">
             <widget class="QTableWidget" name="layersTable">
+             <property name="alternatingRowColors">
+              <bool>false</bool>
+             </property>
              <property name="columnCount">
               <number>3</number>
              </property>
+             <attribute name="horizontalHeaderDefaultSectionSize">
+              <number>100</number>
+             </attribute>
              <column/>
              <column/>
              <column/>
@@ -219,10 +225,37 @@
            <string>Обучение</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_2">
+           <item row="0" column="0">
+            <widget class="QLabel" name="lrStartLabel">
+             <property name="text">
+              <string>Нач. скор.</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="lrEdit">
+             <property name="placeholderText">
+              <string>0.1</string>
+             </property>
+             <property name="clearButtonEnabled">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
            <item row="1" column="0">
             <widget class="QLabel" name="lrFinalLabel">
              <property name="text">
               <string>Кон. скор.</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="lrFinalEdit">
+             <property name="placeholderText">
+              <string>0.001</string>
+             </property>
+             <property name="clearButtonEnabled">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -233,12 +266,94 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
-            <widget class="QLineEdit" name="lrFinalEdit">
+           <item row="2" column="1">
+            <widget class="QComboBox" name="decayComboBox">
+             <property name="insertPolicy">
+              <enum>QComboBox::InsertAtBottom</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="epochsLabel">
+             <property name="text">
+              <string>Эпох</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLineEdit" name="epochsEdit">
              <property name="placeholderText">
-              <string>0.001</string>
+              <string>1000</string>
              </property>
              <property name="clearButtonEnabled">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="queryLabel">
+             <property name="text">
+              <string>Опросов</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLineEdit" name="queryEdit">
+             <property name="placeholderText">
+              <string>10</string>
+             </property>
+             <property name="clearButtonEnabled">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="batchSizeLabel">
+             <property name="text">
+              <string>Пакет</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QLineEdit" name="batchSizeEdit">
+             <property name="placeholderText">
+              <string>64</string>
+             </property>
+             <property name="clearButtonEnabled">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="stoppingLabel">
+             <property name="text">
+              <string>Предв. ост.</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="1">
+            <widget class="QCheckBox" name="stoppingCheckBox">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="0">
+            <widget class="QLabel" name="printLabel">
+             <property name="text">
+              <string>Пром. рез.</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="1">
+            <widget class="QCheckBox" name="printCheckBox">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="checked">
               <bool>true</bool>
              </property>
             </widget>
@@ -260,6 +375,16 @@
              </property>
             </widget>
            </item>
+           <item row="9" column="0">
+            <widget class="QLabel" name="lossLabel">
+             <property name="text">
+              <string>Потеря</string>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="1">
+            <widget class="QComboBox" name="lossComboBox"/>
+           </item>
            <item row="10" column="0">
             <widget class="QLabel" name="optimizerLabel">
              <property name="text">
@@ -267,53 +392,13 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="1">
-            <widget class="QLineEdit" name="epochsEdit">
-             <property name="placeholderText">
-              <string>1000</string>
-             </property>
-             <property name="clearButtonEnabled">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
-            <widget class="QLabel" name="batchSizeLabel">
-             <property name="text">
-              <string>Пакет</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLineEdit" name="lrEdit">
-             <property name="placeholderText">
-              <string>0.1</string>
-             </property>
-             <property name="clearButtonEnabled">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
-            <widget class="QLineEdit" name="queryEdit">
-             <property name="placeholderText">
-              <string>10</string>
-             </property>
-             <property name="clearButtonEnabled">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="1">
-            <widget class="QComboBox" name="lossComboBox"/>
-           </item>
            <item row="10" column="1">
             <widget class="QComboBox" name="optimizerComboBox"/>
            </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="epochsLabel">
+           <item row="11" column="0">
+            <widget class="QLabel" name="momentumLabel">
              <property name="text">
-              <string>Эпох</string>
+              <string>Инерция</string>
              </property>
             </widget>
            </item>
@@ -327,82 +412,17 @@
              </property>
             </widget>
            </item>
-           <item row="6" column="1">
-            <widget class="QCheckBox" name="stoppingCheckBox">
+           <item row="12" column="0">
+            <widget class="QLabel" name="restartsLabel">
              <property name="text">
-              <string/>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
+              <string>Перезап.</string>
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
-            <widget class="QComboBox" name="decayComboBox">
-             <property name="insertPolicy">
-              <enum>QComboBox::InsertAtBottom</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="1">
-            <widget class="QCheckBox" name="printCheckBox">
-             <property name="text">
-              <string/>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="11" column="0">
-            <widget class="QLabel" name="momentumLabel">
-             <property name="text">
-              <string>Инерция</string>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="0">
-            <widget class="QLabel" name="printLabel">
-             <property name="text">
-              <string>Промеж. рез.</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="1">
-            <widget class="QLineEdit" name="batchSizeEdit">
-             <property name="placeholderText">
-              <string>64</string>
-             </property>
-             <property name="clearButtonEnabled">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="stoppingLabel">
-             <property name="text">
-              <string>Предв. остан.</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="queryLabel">
-             <property name="text">
-              <string>Опросов</string>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="0">
-            <widget class="QLabel" name="lossLabel">
-             <property name="text">
-              <string>Потеря</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="lrStartLabel">
-             <property name="text">
-              <string>Нач. скор.</string>
+           <item row="12" column="1">
+            <widget class="QSpinBox" name="restartsSpinBox">
+             <property name="minimum">
+              <number>1</number>
              </property>
             </widget>
            </item>
