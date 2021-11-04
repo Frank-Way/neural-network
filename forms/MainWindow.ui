@@ -36,14 +36,14 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="1">
+    <item row="1" column="2">
      <widget class="QPushButton" name="exitButton">
       <property name="text">
        <string>Выход</string>
       </property>
      </widget>
     </item>
-    <item row="0" column="0" colspan="2">
+    <item row="0" column="0" colspan="3">
      <widget class="QTabWidget" name="tabWidget">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -59,47 +59,14 @@
         <string>Настройка</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="2">
-         <widget class="QGroupBox" name="layersGroupBox">
-          <property name="title">
-           <string>Сеть</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_6">
-           <item row="0" column="0">
-            <widget class="QLabel" name="layersLabel">
-             <property name="text">
-              <string>Количествово слоёв</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QSpinBox" name="layersSpinBox">
-             <property name="minimum">
-              <number>1</number>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0" colspan="2">
-            <widget class="QTableWidget" name="layersTable">
-             <property name="alternatingRowColors">
-              <bool>false</bool>
-             </property>
-             <property name="columnCount">
-              <number>3</number>
-             </property>
-             <attribute name="horizontalHeaderDefaultSectionSize">
-              <number>100</number>
-             </attribute>
-             <column/>
-             <column/>
-             <column/>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
         <item row="0" column="0">
          <widget class="QGroupBox" name="inputsGroupBox">
+          <property name="maximumSize">
+           <size>
+            <width>300</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="title">
            <string>Выборка</string>
           </property>
@@ -202,17 +169,29 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="3">
-            <widget class="QPushButton" name="plotFunctionButton">
+           <item row="3" column="0" colspan="2">
+            <widget class="QPushButton" name="validateFunctionButton">
+             <property name="maximumSize">
+              <size>
+               <width>110</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="text">
-              <string>График</string>
+              <string>Проверка</string>
              </property>
             </widget>
            </item>
-           <item row="3" column="0" colspan="3">
-            <widget class="QPushButton" name="validateFunctionButton">
+           <item row="3" column="2" colspan="2">
+            <widget class="QPushButton" name="plotFunctionButton">
+             <property name="maximumSize">
+              <size>
+               <width>110</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="text">
-              <string>Проверка</string>
+              <string>График</string>
              </property>
             </widget>
            </item>
@@ -221,6 +200,12 @@
         </item>
         <item row="0" column="1">
          <widget class="QGroupBox" name="trainGroupBox">
+          <property name="maximumSize">
+           <size>
+            <width>275</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="title">
            <string>Обучение</string>
           </property>
@@ -429,6 +414,45 @@
           </layout>
          </widget>
         </item>
+        <item row="0" column="2">
+         <widget class="QGroupBox" name="layersGroupBox">
+          <property name="title">
+           <string>Сеть</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_6">
+           <item row="0" column="0">
+            <widget class="QLabel" name="layersLabel">
+             <property name="text">
+              <string>Количествово слоёв</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QSpinBox" name="layersSpinBox">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <widget class="QTableWidget" name="layersTable">
+             <property name="alternatingRowColors">
+              <bool>false</bool>
+             </property>
+             <property name="columnCount">
+              <number>3</number>
+             </property>
+             <attribute name="horizontalHeaderDefaultSectionSize">
+              <number>100</number>
+             </attribute>
+             <column/>
+             <column/>
+             <column/>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="tab_2">
@@ -467,8 +491,62 @@
       </widget>
      </widget>
     </item>
+    <item row="1" column="1">
+     <widget class="QPushButton" name="exportButton">
+      <property name="text">
+       <string>Экспорт</string>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1000</width>
+     <height>29</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Помощь</string>
+    </property>
+    <addaction name="tabsAction"/>
+    <addaction name="buttonsAction"/>
+    <addaction name="settingsAction"/>
+    <addaction name="separator"/>
+    <addaction name="guideAction"/>
+    <addaction name="aboutAction"/>
+   </widget>
+   <addaction name="menu"/>
+  </widget>
+  <action name="tabsAction">
+   <property name="text">
+    <string>О назначении вкладок</string>
+   </property>
+  </action>
+  <action name="buttonsAction">
+   <property name="text">
+    <string>О назначении кнопок</string>
+   </property>
+  </action>
+  <action name="guideAction">
+   <property name="text">
+    <string>Инструкция</string>
+   </property>
+  </action>
+  <action name="aboutAction">
+   <property name="text">
+    <string>О программе</string>
+   </property>
+  </action>
+  <action name="settingsAction">
+   <property name="text">
+    <string>О настройках</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

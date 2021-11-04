@@ -3,7 +3,7 @@
 """
 import json
 import os
-from typing import Tuple
+from typing import Tuple, Any
 from os.path import exists
 
 import numpy as np
@@ -41,6 +41,7 @@ class Configuration(object):
     trainer: Trainer  # тренер
     optimizer: Optimizer  # оптимизатор
     dl: DataLoader  # загрузчик данных
+    deltas: Tuple[float, float, float]  # результаты обучения
 
     def __init__(self, path: str = None):
         """
@@ -283,6 +284,7 @@ class Configuration(object):
             result += f"\nмакс. абс. ошибка: {delta:e};" \
                       f"\tмакс. относ. ошибка: {rel_delta:e} %;" \
                       f"\tсред. абс. ошибка: {avg_delta:e}"
+            self.deltas = (delta, rel_delta, avg_delta)
         elif self.inputs["data_loader"] == "mnist":
             result = f"слои: {layers[:-1]}\tобучение распознаванию " \
                      f"рукописных цифр MNIST"
@@ -323,5 +325,66 @@ class Configuration(object):
         else:
             raise NotImplementedDataLoaderGraphException(self.inputs["data_loader"])
 
-    def get_function_plot(self):
-        pass
+    def export_model(self, result_type: str = "text") -> Any:
+        """
+        Экспорт модели в заданный тип
+        Parameters
+        ----------
+        result_type: Тип результата экспорта (text - строка)
+        Returns
+        -------
+        Результат экспорта, тип которого определяется параметром result_type
+        """
+        if result_type != "text":
+            raise NotImplementedError()
+
+        activations_decoder = {"linear": "Линейная", "sigmoid": "Сигмоида",
+                               "tanh": "Гиперболичесий тангенс", "relu": "ReLU",
+                               "leakyrelu": "Leaky ReLU"}
+
+        msg = ""
+        delim = "#" * 80
+        msg += delim + "\n"
+
+        msg += "Нейронная сеть, обученная для воспроизведения зависимости\n"
+        if self.inputs["count"] == 1:
+            msg += "    F(x1)"
+        elif self.inputs["count"] == 2:
+            msg += "    F(x1, x2)"
+        else:
+            msg += f"    F(x1, ..., x{self.inputs['count']})"
+        msg += f" = {self.dl.str_expression}\n"
+
+        msg += "в пределах изменения входных переменных:\n"
+        for ii in range(self.inputs["count"]):
+            msg += f"    x{ii + 1}: [{self.inputs['limits'][ii][0]}; " \
+                   f"{self.inputs['limits'][ii][1]}]\n"
+
+        if self.deltas is not None:
+            msg += "\n".join(("с точностью:",
+                              f"    макс. абс. ошибка = {self.deltas[0]:e}",
+                              f"    макс. отн. ошибка = {self.deltas[1]:e} %",
+                              f"    сред. абс. ошибка = {self.deltas[2]:e}"))
+        msg += "\n" + delim + "\n"
+
+        msg += "Конфигурация слоёв\n"
+        for ii in range(self.layers["count"]):
+            neurons = self.layers['config'][ii]['neurons']
+            act = activations_decoder[self.layers['config'][ii]['activation']]
+            dropout = self.layers['config'][ii]['dropout']
+            layer_cfg = "\n".join((f"{ii + 1})",
+                                   f"    нейронов - {neurons}",
+                                   f"    активация - {act}",
+                                   f"    dropout - {dropout}"))
+            msg += layer_cfg + "\n"
+        msg += delim + "\n"
+
+        msg += "Параметры модели\n"
+        for ii in range(self.layers["count"]):
+            msg += f"{ii + 1})\n"
+            msg += "Веса\n"
+            msg += str(self.model.layers[ii].params[0]) + "\n\n"
+            msg += "Смещения\n"
+            msg += str(self.model.layers[ii].params[1]) + "\n\n"
+        msg += delim
+        return msg

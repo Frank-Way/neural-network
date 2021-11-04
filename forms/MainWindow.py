@@ -46,6 +46,12 @@ class MainWindow(MainWindowSlots):
         self.exitButton.clicked.connect(QCoreApplication.instance().quit)
         self.clearOutputButton.clicked.connect(self.clear_output)
         self.plotFunctionButton.clicked.connect(self.plot_function)
+        self.exportButton.clicked.connect(self.export_model)
+        self.tabsAction.triggered.connect(self.tabs_help)
+        self.buttonsAction.triggered.connect(self.buttons_help)
+        self.guideAction.triggered.connect(self.guide_help)
+        self.aboutAction.triggered.connect(self.about_help)
+        self.settingsAction.triggered.connect(self.settings_help)
 
 
 class OutLog:
