@@ -49,7 +49,8 @@ class Configuration(object):
         Конструктор
         Parameters
         ----------
-        path: Путь к файлу с настройками
+        path: str
+            Путь к файлу с настройками
         """
         if path is not None:
             self.path = path
@@ -62,7 +63,8 @@ class Configuration(object):
         генерируется конфигурация по умолчанию
         Parameters
         ----------
-        path: Путь к файлу с настройками
+        path: path
+            Путь к файлу с настройками
         """
         if path is not None:
             self.path = path
@@ -82,7 +84,8 @@ class Configuration(object):
         соответствующее исключение
         Parameters
         ----------
-        path: Путь к файлу с настройками
+        path: str
+            Путь к файлу с настройками
         """
         if path is not None:
             self.path = path
@@ -147,7 +150,8 @@ class Configuration(object):
         Обновление экземпляра в соответствии с полученной конфигурацией
         Parameters
         ----------
-        values: Конфигуарция
+        values: dict
+            Конфигуарция
         """
         self.values = values
         self.__dict__.update(values)
@@ -157,7 +161,8 @@ class Configuration(object):
         Генерация модели по заданным настройкам
         Returns
         -------
-        NeuralNetwork: Модель
+        NeuralNetwork
+            Модель
         """
         nn = NeuralNetwork(
             layers=[self.decoder[self.layers["config"][ll]["class"]](
@@ -176,7 +181,8 @@ class Configuration(object):
         Генерация оптимизатора по заданным настройкам
         Returns
         -------
-        Optimizer: Оптимизатор
+        Optimizer
+            Оптимизатор
         """
         if self.train["optimizer"] == "sgd":
             optimizer = self.decoder["sgd"](
@@ -200,7 +206,8 @@ class Configuration(object):
         Генерация тренера по заданным настройкам
         Returns
         -------
-        Trainer: Тренер
+        Trainer
+            Тренер
         """
         self.model = self._get_net()
         self.optimizer = self._get_optimizer()
@@ -244,10 +251,12 @@ class Configuration(object):
         Генерация набора параметров для вызова функции обучения нейросети
         Parameters
         ----------
-        data: Данные для обучения и тестов
+        data: dict
+            Данные для обучения и тестов
         Returns
         -------
-        dict: Параметры
+        dict
+            Параметры
         """
         fit_params = {
             "x_train": data["x_train"], "x_test": data["x_test"],
@@ -266,11 +275,12 @@ class Configuration(object):
         Формирование строки с результатами обучения
         Parameters
         ----------
-        results: Потеря, макс. ошибка, потери, тестовые входы, выходы и
-                 результаты
+        results: Tuple
+            Потеря, макс. ошибка, потери, тестовые входы, выходы и результаты
         Returns
         -------
-        str: Результат обучения
+        str
+            Результат обучения
         """
         loss, delta, losses, x_test, y_test, test_preds = results
         layers = [self.layers["config"][ll]["neurons"]
@@ -299,11 +309,12 @@ class Configuration(object):
         Подготовка функции отрисовки графиков и параметров её вызова
         Parameters
         ----------
-        results: Потеря, макс. ошибка, потери, тестовые входы, выходы и
-                 результаты
+        results: Tuple
+            Потеря, макс. ошибка, потери, тестовые входы, выходы и результаты
         Returns
         -------
-        Tuple: Функция и параметры для её вызова
+        Tuple
+            Функция и параметры для её вызова
         """
         if self.inputs["data_loader"] == "ap":
             if self.train["show_plots"]:
@@ -331,10 +342,12 @@ class Configuration(object):
         Экспорт модели в заданный тип
         Parameters
         ----------
-        result_type: Тип результата экспорта (text - строка)
+        result_type: str
+            Тип результата экспорта (text - строка)
         Returns
         -------
-        Результат экспорта, тип которого определяется параметром result_type
+        Any
+            Результат экспорта, тип которого определяется параметром result_type
         """
         if result_type != "text":
             raise NotImplementedError()

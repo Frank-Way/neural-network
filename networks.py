@@ -21,9 +21,12 @@ class NeuralNetwork(object):
         Конструктор нейронной сети
         Parameters
         ----------
-        layers: Набор слоёв
-        loss: Функция потерь
-        seed: Сид для инициализации рандомайзера
+        layers: List[Layer]
+            Набор слоёв
+        loss: Loss
+            Функция потерь
+        seed: int
+            Сид для инициализации рандомайзера
         """
         self.layers = layers
         self.loss = loss
@@ -39,11 +42,14 @@ class NeuralNetwork(object):
         Передача входа через набор слоёв
         Parameters
         ----------
-        inference: Обратный проход?
-        x_batch: Пакет входных данных
+        inference: bool
+            Обратный проход?
+        x_batch: ndarray
+            Пакет входных данных
         Returns
         -------
-        ndarray: Выход нейросети
+        ndarray
+            Выход нейросети
         """
         x_out = x_batch
         for layer in self.layers:
@@ -56,10 +62,12 @@ class NeuralNetwork(object):
         Передача ошибки назад через набор слоёв
         Parameters
         ----------
-        loss_grad: Градиент функции потерь
+        loss_grad: ndarray
+            Градиент функции потерь
         Returns
         -------
-        ndarray: Градиент на входе нейросети
+        ndarray
+            Градиент на входе нейросети
         """
         grad = loss_grad
 
@@ -76,12 +84,16 @@ class NeuralNetwork(object):
         Вычисление потерь
         Parameters
         ----------
-        x_batch: Массив входных значений
-        y_batch: Массив выходных значений
-        inference: Обратный проход?
+        x_batch: ndarray
+            Массив входных значений
+        y_batch: ndarray
+            Массив выходных значений
+        inference: bool
+            Обратный проход?
         Returns
         -------
-        float: Потеря
+        float
+            Потеря
         """
         prediction = self.forward(x_batch, inference)
         return self.loss.forward(prediction, y_batch)
@@ -95,12 +107,16 @@ class NeuralNetwork(object):
         вычисление потерь, вычисление градиента)
         Parameters
         ----------
-        inference: Обратный проход?
-        x_batch: Пакет входных данных из обучающей выборки
-        y_batch: Пакет выходных данных из обучающей выборки
+        inference: bool
+            Обратный проход?
+        x_batch: ndarray
+            Пакет входных данных из обучающей выборки
+        y_batch: ndarray
+            Пакет выходных данных из обучающей выборки
         Returns
         -------
-        float: Потеря
+        float
+            Потеря
         """
         predictions = self.forward(x_batch, inference)
 

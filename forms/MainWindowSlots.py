@@ -119,7 +119,8 @@ class MainWindowSlots(Ui_MainWindow):
         Загрузка конфигуарци и обновление окна в соответствии с ней
         Parameters
         ----------
-        path: Путь к файлу с настройками
+        path: str
+            Путь к файлу с настройками
         """
         # загрузка конфигурации
         self._PATH = path
@@ -544,8 +545,10 @@ class MainWindowSlots(Ui_MainWindow):
         конфигурауции
         Parameters
         ----------
-        cb: Выпадающий список
-        property_name: Название параметра
+        cb: QComboBox
+            Выпадающий список
+        property_name: str
+            Название параметра
         """
         cb. \
             setCurrentIndex(
@@ -579,6 +582,10 @@ class MainWindowSlots(Ui_MainWindow):
     def _is_function_valid(self) -> bool:
         """
         Проверка функции на корректность
+        Returns
+        -------
+        bool
+            Результат проверки
         """
         valid = True
         try:  # попытка вычислить значение функции от случайных аргументов
@@ -679,7 +686,8 @@ class MainWindowSlots(Ui_MainWindow):
         ошибках
         Returns
         -------
-        str: Сообщение об ошибках (при их наличии)
+        str
+            Сообщение об ошибках (при их наличии)
         """
         message = ""  # сообщение об ошибках
         # если были ошибки при чтении, проверка не выполняется
@@ -785,7 +793,8 @@ class MainWindowSlots(Ui_MainWindow):
         Сохранение результата обучения в очередь
         Parameters
         ----------
-        result: Результат обучения
+        result: Tuple
+            Результат обучения
         """
         self._results_queue.put_nowait(result)
 
@@ -794,7 +803,8 @@ class MainWindowSlots(Ui_MainWindow):
         Отображение графика в окне MDI-виджета
         Parameters
         ----------
-        fig: График
+        fig: Figure
+            График
         """
         # создание дочернего окна под график
         sub = QMdiSubWindow(self.mdiArea)
@@ -842,35 +852,34 @@ class MainWindowSlots(Ui_MainWindow):
         self.exportButton.setEnabled(True)
 
 
-class _WorkerSignals(QObject):
-    """
-    Класс для описания сигналов, генерируемых тредом, выполняющего обучение
-    """
-    finished = pyqtSignal()  # признак завершения работы треда
-    error = pyqtSignal(tuple)  # ошибка при работе треда
-    result = pyqtSignal(object)  # результат работы треда
-
-
 class _Worker(QRunnable):
     """
     Класс-оболочка для QThread, реализующий вызов заданной функции с заданными
     аргументами
     """
+    class _WorkerSignals(QObject):
+        """
+        Класс для описания сигналов, генерируемых тредом, выполняющего обучение
+        """
+        finished = pyqtSignal()  # признак завершения работы треда
+        error = pyqtSignal(tuple)  # ошибка при работе треда
+        result = pyqtSignal(object)  # результат работы треда
 
     def __init__(self, fn: Callable, kwargs: dict):
         """
         Конструктор треда
         Parameters
         ----------
-        fn: Функция, выполняемая в треде
-        kwargs: Аргументы функции
+        fn: Callable
+            Функция, выполняемая в треде
+        kwargs: dict
+            Аргументы функции
         """
         super(_Worker, self).__init__()  # вызов конструктора QRunnable()
         self.fn = fn  # сохранение функции
         self.kwargs = kwargs  # сохранение аргументов
-        self.signals = _WorkerSignals()  # инициализация сигналов
+        self.signals = self._WorkerSignals()  # инициализация сигналов
 
-    @pyqtSlot()  # run - Qt-слот
     def run(self) -> None:
         """
         Запуск функции

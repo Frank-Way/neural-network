@@ -17,13 +17,15 @@ from scipy.special import logsumexp
 mpl.use('Qt5Agg')
 
 
-def assert_same_shape(a: ndarray, b: ndarray):
+def assert_same_shape(a: ndarray, b: ndarray) -> None:
     """
     Функция проверки совпадения форм массивов
     Parameters
     ----------
-    a: Первый массив
-    b: Второй массив
+    a: ndarray
+        Первый массив
+    b: ndarray
+        Второй массив
     """
     assert a.shape == b.shape, \
         "The shapes of the given arrays do not match:\n" \
@@ -37,11 +39,14 @@ def permute_data(a: ndarray,
     Функция перемешивания двух массивов
     Parameters
     ----------
-    a: Первый массив
-    b: Второй массив
+    a: ndarray
+        Первый массив
+    b: ndarray
+        Второй массив
     Returns
     -------
-    Tuple[ndarray]: Перемешанные массивы
+    Tuple[ndarray, ndarray]
+        Перемешанные массивы
     """
     perm = np.random.permutation(a.shape[0])
     return a[perm], b[perm]
@@ -52,10 +57,12 @@ def complete_path(path: str) -> str:
     Функция формирования полного пути
     Parameters
     ----------
-    path: Путь
+    path: str
+        Путь
     Returns
     -------
-    str: Полный путь
+    str
+        Полный путь
     """
     dirname = os.path.dirname(__file__)
     filename = os.path.join(dirname, path)
@@ -69,10 +76,12 @@ def normalize(a: ndarray) -> ndarray:
     обратных вероятностей q = 1 - p
     Parameters
     ----------
-    a: Исходный массив вероятностей
+    a: ndarray
+        Исходный массив вероятностей
     Returns
     -------
-    ndarray: Массив исходных и обратных вероятностей
+    ndarray
+        Массив исходных и обратных вероятностей
     """
     other = 1.0 - a
     return np.concatenate([a, other], axis=1)
@@ -84,10 +93,12 @@ def unnormalize(a: np.ndarray) -> ndarray:
     вероятностей, дополненных обратными с помощью функции normalize
     Parameters
     ----------
-    a: Массив исходных и обратных вероятностей
+    a: ndarray
+        Массив исходных и обратных вероятностей
     Returns
     -------
-    ndarray: Массив исходных вероятностей
+    ndarray
+        Массив исходных вероятностей
     """
     return a[np.newaxis, 0]
 
@@ -98,11 +109,14 @@ def to_2d(a: np.ndarray,
     Функция формирования 2-мерного массива из 1-мерного
     Parameters
     ----------
-    a: 1-мерный массив
-    array_type: Тип 1-мерного массива (строка или столбец)
+    a: ndarray
+        1-мерный массив
+    array_type: str
+        Тип 1-мерного массива (строка или столбец)
     Returns
     -------
-    ndarray: 2-мерный массив
+    ndarray
+        2-мерный массив
     """
 
     if a.ndim == 1:
@@ -119,11 +133,14 @@ def softmax(x: ndarray, axis: int = None) -> ndarray:
     Функция применения Softmax к массиву по указанной оси
     Parameters
     ----------
-    x: Входной массив
-    axis: Номер оси
+    x: ndarray
+        Входной массив
+    axis: int
+        Номер оси
     Returns
     -------
-    ndarray: Softmax(x)
+    ndarray
+        Softmax(x)
     """
     return np.exp(x - logsumexp(x, axis=axis, keepdims=True))
 
@@ -134,11 +151,14 @@ def load_image(filename: str, scaler: MinMaxScaler = None) -> ndarray:
     к одномерному массиву с диапозоном значений [0; 1]
     Parameters
     ----------
-    filename: Путь к файлу с изображением
-    scaler: Скейлер для приведения значений к диапозону [0; 1]
+    filename: str
+        Путь к файлу с изображением
+    scaler: MinMaxScaler
+        Скейлер для приведения значений к диапозону [0; 1]
     Returns
     -------
-    ndarray: Одномерный массив, представляющий изображение в градациях серого
+    ndarray
+        Одномерный массив, представляющий изображение в градациях серого
     """
     img = Image.open(filename).convert("L")
     img.load()
@@ -156,12 +176,16 @@ def calc_accuracy_model(model,
     Функция оценки точности модели в количестве правильно предсказанных меток
     Parameters
     ----------
-    model: Модель (нейросеть)
-    test_set: Набор тестовых входных данных
-    y_test: Набор тестовых выходных данных
+    model: NeuralNetwork
+        Модель (нейросеть)
+    test_set: ndarray
+        Набор тестовых входных данных
+    y_test: ndarray
+        Набор тестовых выходных данных
     Returns
     -------
-    str: Точность работы модели
+    str
+        Точность работы модели
     """
     pred_test = model.forward(test_set, inference=True)
     accuracy = np.equal(np.argmax(pred_test, axis=1),
@@ -177,9 +201,12 @@ def batches_generator(x: ndarray,
     Генератор пакетов для обучения
     Parameters
     ----------
-    x: Входы
-    y: Требуемые выходы
-    size: Размер пакета
+    x: ndarray
+        Входы
+    y: ndarray
+        Требуемые выходы
+    size: int
+        Размер пакета
     """
     assert x.shape[0] == y.shape[0], f"""
     Входы и выходы должны иметь одинаковое число строк, но входы имеют
@@ -199,10 +226,12 @@ def mnist_labels_to_y(labels: ndarray) -> ndarray:
     Функция преобразования метки в набор набор признаков
     Parameters
     ----------
-    labels: Массив меток
+    labels: ndarray
+        Массив меток
     Returns
     -------
-    ndarray: Массив признаков
+    ndarray
+        Массив признаков
     """
     labels -= np.min(labels)
     classes = int(np.max(labels) + 1)
@@ -217,10 +246,12 @@ def replace_chars(a: str) -> str:
     Функция для удаления пробелов и замены '/' на ':' в строках
     Parameters
     ----------
-    a: Входная строка
+    a: str
+        Входная строка
     Returns
     -------
-    str: Выходная строка с заменёнными символами
+    str
+        Выходная строка с заменёнными символами
     """
     return a.replace("/", ":").replace(" ", "")
 
@@ -230,11 +261,13 @@ def cartesian(arrays: Tuple[ndarray, ...]) -> ndarray:
     Вычисление декартового произведения массивов
     Parameters
     ----------
-    arrays: 1-D массивы
+    arrays: Tuple[ndarray, ...]
+        1-D массивы
     Returns
     -------
-    ndarray: 2-D массив формы (M, len(arrays)) с декартовым произведением
-             исходных массивов
+    ndarray
+        2-D массив формы (M, len(arrays)) с декартовым произведением
+        исходных массивов
     Examples
     --------
     >>> cartesian((np.asarray([1, 2, 3]), np.asarray([4, 5]), np.asarray([6, 7])))
@@ -281,15 +314,22 @@ def show_results(losses: List[float],
     аппроксимирующей математические функции одной переменной
     Parameters
     ----------
-    losses: Список потерь
-    x_test: Массив входных значений
-    pred_test: Массив выходных значений
-    y_test: Массив требуемых выходных значений
-    function_name: Название функции
-    neurons: Количество нейронов
+    losses: List[float]
+        Список потерь
+    x_test: ndarray
+        Массив входных значений
+    pred_test: ndarray
+        Массив выходных значений
+    y_test: ndarray
+        Массив требуемых выходных значений
+    function_name: str
+        Название функции
+    neurons: List[int]
+        Количество нейронов
     Returns
     -------
-    Фигура и оси
+    Tuple
+        Фигура и оси
     """
     x = x_test
     y = pred_test
@@ -331,15 +371,22 @@ def show_results3d(losses: List[float],
     аппроксимирующей математические функции одной переменной
     Parameters
     ----------
-    losses: Список потерь
-    x_test: Массив входных значений
-    pred_test: Массив выходных значений
-    y_test: Массив требуемых выходных значений
-    function_name: Название функции
-    neurons: Количество нейронов
+    losses: List[float]
+        Список потерь
+    x_test: ndarray
+        Массив входных значений
+    pred_test: ndarray
+        Массив выходных значений
+    y_test: ndarray
+        Массив требуемых выходных значений
+    function_name: str
+        Название функции
+    neurons: List[int]
+        Количество нейронов
     Returns
     -------
-    Фигура и оси
+    Tuple
+        Фигура и оси
     """
 
     x = x_test
@@ -383,15 +430,23 @@ def show_results_losses(losses: List[float],
     нейросети, аппроксимирующей математические функции одной переменной
     Parameters
     ----------
-    losses: Список потерь
-    x_test: Массив входных значений
-    pred_test: Массив выходных значений
-    y_test: Массив требуемых выходных значений
-    function_name: Название функции
-    neurons: Количество нейронов
+    ----------
+    losses: List[float]
+        Список потерь
+    x_test: ndarray
+        Массив входных значений
+    pred_test: ndarray
+        Массив выходных значений
+    y_test: ndarray
+        Массив требуемых выходных значений
+    function_name: str
+        Название функции
+    neurons: List[int]
+        Количество нейронов
     Returns
     -------
-    Фигура и оси
+    Tuple
+        Фигура и оси
     """
     fig = plt.figure()
 
@@ -410,11 +465,14 @@ def show_function(function: Callable,
     Построение графика функции в окрестности нуля или в заданных границах
     Parameters
     ----------
-    limits: Границы для входных переменных
-    function: Функия
+    limits: List[List[float]]
+        Границы для входных переменных
+    function: Callable
+        Функия
     Returns
     -------
-    Фигура и оси
+    Tuple
+        Фигура и оси
     """
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
@@ -436,11 +494,14 @@ def show_function3d(function: Callable,
     Построение графика функции в окрестности нуля или в заданных границах
     Parameters
     ----------
-    limits: Границы для входных переменных
-    function: Функия
+    limits: List[List[float]]
+        Границы для входных переменных
+    function: Callable
+        Функия
     Returns
     -------
-    Фигура и оси
+    Tuple
+        Фигура и оси
     """
     fig = plt.figure()
     ax1 = fig.add_subplot(111, projection="3d")

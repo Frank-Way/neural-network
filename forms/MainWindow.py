@@ -6,7 +6,7 @@ from queue import Queue
 
 from PyQt5 import QtGui
 from PyQt5.QtCore import QCoreApplication, QObject, pyqtSignal
-from PyQt5.QtWidgets import QTextEdit
+from PyQt5.QtWidgets import QTextEdit, QMainWindow
 
 from forms.MainWindowSlots import MainWindowSlots
 
@@ -15,12 +15,13 @@ class MainWindow(MainWindowSlots):
     """
     Класс с описанием интерфейса главного окна
     """
-    def __init__(self, form):
+    def __init__(self, form: QMainWindow):
         """
         Конструктор формы
         Parameters
         ----------
-        form: Форма
+        form: QMainWindow
+            Форма
         """
         # конфигурация интерфейса методом из базового класса Ui_MainWindow
         self.setupUi(form)
@@ -57,43 +58,49 @@ class MainWindow(MainWindowSlots):
 
 class OutLog:
     """
-        Клосс с описанием логгера, который перенаправляет вывод в заданный элемент
-        QTextEdit
+        Клосс с описанием логгера, который перенаправляет вывод в заданный
+        элемент QTextEdit
     """
-    class LogSignals(QObject):
+    class _LogSignals(QObject):
         """
         Сигналы логгера
         """
-        new_msg = pyqtSignal()
+        new_msg = pyqtSignal()  # появление нового сообщения
 
-    _MSG_QUEUE: Queue
+    _MSG_QUEUE: Queue  # очередь сообщений для вывода
 
     def __init__(self, edit: QTextEdit) -> None:
         """
         При создании назначениется элемент для вывода в него тестовой информации
         Parameters
         ----------
-        edit: Поля для вывода
+        edit: QTextEdit
+            Поля для вывода
         """
-        self.edit = edit
-        self._MSG_QUEUE = Queue()
-        self.signals = self.LogSignals()
+        self.edit = edit  # сохранение поля для вывода
+        self._MSG_QUEUE = Queue()  # иниц-я очереди
+        self.signals = self._LogSignals()  # иниц-я сигналов
+        # подключение сигнала о появлении нового сообщения к соотв-му слоту
         self.signals.new_msg.connect(self._update)
 
-    def write(self, msg) -> None:
+    def write(self, msg: str) -> None:
         """
         Запись вывода в поле
         Parameters
         ----------
-        msg: Сообщение
+        msg: str
+            Сообщение
         """
-        self._MSG_QUEUE.put_nowait(msg)
-        self.signals.new_msg.emit()
+        self._MSG_QUEUE.put_nowait(msg)  # помещение сообщения в очередь
+        self.signals.new_msg.emit()  # выработка сигнала о поступлении сообщения
 
-    def _update(self):
+    def _update(self) -> None:
+        """
+        Слот для вывода полученного сообщения в поле для вывода
+        """
         # перемещение курсора в конец
         self.edit.moveCursor(QtGui.QTextCursor.End)
-        self.edit.insertPlainText(self._MSG_QUEUE.get())  # запись сообщния
+        self.edit.insertPlainText(self._MSG_QUEUE.get())  # запись сообщения
 
     def flush(self) -> None:
         """

@@ -5,24 +5,30 @@ from typing import List
 
 import numpy as np
 
+from networks import NeuralNetwork
+
 
 class Optimizer(object):
     """
     Базовый класс оптимизатора нейронной сети
     """
-    max_epochs: int
+    max_epochs: int  # максимальное количество эпох обучения
+    net: NeuralNetwork  # модель
 
     def __init__(self,
                  lr: float = 0.01,
                  final_lr: float = 0.0,
-                 decay_type: str = None):
+                 decay_type: str = "lin"):
         """
         Конструктор оптимизатора
         Parameters
         ----------
-        decay_type: Способ уменьшения скорости обучения
-        final_lr: Финальная скорость обучения
-        lr: Скорость обучения
+        decay_type: str
+            Способ уменьшения скорости обучения
+        final_lr: float
+            Финальная скорость обучения
+        lr: float
+            Скорость обучения
         """
         self.lr = lr
         self.final_lr = final_lr
@@ -61,7 +67,8 @@ class Optimizer(object):
         Шаг подстройки параметров модели
         Parameters
         ----------
-        epoch: Номер эпохи обучения
+        epoch: int
+            Номер эпохи обучения
         """
         for (param, param_grad) in zip(self.net.params(),
                                        self.net.param_grads()):
@@ -82,14 +89,17 @@ class SGD(Optimizer):
     def __init__(self,
                  lr: float = 0.01,
                  final_lr: float = 0,
-                 decay_type: str = None):
+                 decay_type: str = "lin"):
         """
         Конструктор оптимизатора
         Parameters
         ----------
-        decay_type: Способ уменьшения скорости обучения
-        final_lr: Финальная скорость обучения
-        lr: Скорость обучения
+        decay_type: str
+            Способ уменьшения скорости обучения
+        final_lr: float
+            Финальная скорость обучения
+        lr: float
+            Скорость обучения
         """
         super().__init__(lr, final_lr, decay_type)
 
@@ -111,16 +121,20 @@ class SGDMomentum(Optimizer):
     def __init__(self,
                  lr: float = 0.01,
                  final_lr: float = 0,
-                 decay_type: str = None,
+                 decay_type: str = "lin",
                  momentum: float = 0.9) -> None:
         """
         Конструктор оптимизатора
         Parameters
         ----------
-        decay_type: Способ уменьшения скорости обучения
-        final_lr: Финальная скорость обучения
-        lr: Скорость обучения
-        momentum: Величина инертности
+        decay_type: str
+            Способ уменьшения скорости обучения
+        final_lr: float
+            Финальная скорость обучения
+        lr: float
+            Скорость обучения
+        momentum: float
+            Величина инертности
         """
         super().__init__(lr, final_lr, decay_type)
         self.momentum = momentum
@@ -131,7 +145,8 @@ class SGDMomentum(Optimizer):
         инертности
         Parameters
         ----------
-        epoch: Эпоха обучения
+        epoch: int
+            Эпоха обучения
         """
         if self.first:
             self.velocities = [np.zeros_like(param)
@@ -145,14 +160,14 @@ class SGDMomentum(Optimizer):
                               grad=param_grad,
                               velocity=velocity)
 
-    def _update_rule(self, **kwargs) -> None:
+    def _update_rule(self, **kwargs: dict) -> None:
         """
         Правило подстройки параметров модели
 
         Parameters
         ----------
-        kwargs
-
+        kwargs: dict
+            Параметры, градиенты, скорости
         Returns
         -------
         None

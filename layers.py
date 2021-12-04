@@ -22,8 +22,10 @@ class Layer(object):
         Конструктор слоя
         Parameters
         ----------
-        neurons: Количество нейронов в слое
-        seed: Сид для инициализации рандомайзера
+        neurons: neurons
+            Количество нейронов в слое
+        seed: int
+            Сид для инициализации рандомайзера
         """
         self.neurons = neurons
         self.first = True
@@ -45,11 +47,14 @@ class Layer(object):
         Обработка входа набором операций
         Parameters
         ----------
-        inference: Обратный проход?
-        input_: Массив входов
+        inference: inference
+            Обратный проход?
+        input_: ndarray
+            Массив входов
         Returns
         -------
-        ndarray: Выход
+        ndarray
+            Выход
         """
         if self.first:
             self._setup_layer(input_)
@@ -69,10 +74,12 @@ class Layer(object):
         Вычисление градиенты в обратном направлении через набор операций
         Parameters
         ----------
-        output_grad: Градиент на выходе
+        output_grad: ndarray
+            Градиент на выходе
         Returns
         -------
-        ndarray: Градиент на входе
+        ndarray
+            Градиент на входе
         """
         assert_same_shape(self.output, output_grad)
 
@@ -116,10 +123,14 @@ class Dense(Layer):
         Конструктор полносвязного слоя
         Parameters
         ----------
-        weight_init : Способ инициализации весов
-        dropout : Вероятность исключения нейронов из слоя
-        neurons: Количество нейронов в слое
-        activation: Функция активации
+        weight_init: str
+            Способ инициализации весов
+        dropout: float
+            Вероятность исключения нейронов из слоя
+        neurons: int
+            Количество нейронов в слое
+        activation: Operation
+            Функция активации
         """
         super().__init__(neurons)
         self.activation = activation
@@ -131,7 +142,8 @@ class Dense(Layer):
         Определение операций и их параметров для полносвязного слоя
         Parameters
         ----------
-        input_: Массив входных значений
+        input_: ndarray
+            Массив входных значений
         """
         if self.seed:
             np.random.seed(self.seed)

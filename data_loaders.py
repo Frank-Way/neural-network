@@ -46,7 +46,8 @@ class MNISTDataLoader(DataLoader):
         Конструктор
         Parameters
         ----------
-        path: Путь к выборке
+        path: str
+            Путь к выборке
         """
         self.path = path
 
@@ -84,7 +85,7 @@ class MNISTDataLoader(DataLoader):
         Чтение выборки
         Returns
         -------
-        Tuple[ndarray, ndarray, ndarray, ndarray]:
+        Tuple[ndarray, ndarray, ndarray, ndarray]
             Входные значения для обучения, входные значения для тестов,
             выходные значения для обучения, выходные значения для тестов
         """
@@ -115,13 +116,20 @@ class ApproximationDataLoader(DataLoader):
         Конструктор
         Parameters
         ----------
-        inputs: Количество входов
-        fun_name: Символическая запись функции
-        size: Размер выборки
-        limits: Границы для входных переменных
-        scale_inputs: Скалировать входы к [0;1]?
-        p_to_test: Сколько процентов составляет тестовая выборка
-        p_to_extend: На сколько процентов расширять входные значения в выборке
+        inputs: int
+            Количество входов
+        fun_name: str
+            Символическая запись функции
+        size: int
+            Размер выборки
+        limits: List[List[float]]
+            Границы для входных переменных
+        scale_inputs: bool
+            Скалировать входы к [0;1]?
+        p_to_test: float
+            Сколько процентов составляет тестовая выборка
+        p_to_extend: float
+            На сколько процентов расширять входные значения в выборке
         """
         self.limits = limits
         self.scale_inputs = scale_inputs
@@ -141,14 +149,14 @@ class ApproximationDataLoader(DataLoader):
                                        self.simplified_expression)
 
         self.train_size = size
-        self.test_size = int(self.train_size * self.p_to_test)
+        self.test_size = int(self.train_size ** self.inputs * self.p_to_test)
 
     def load(self) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
         """
         Загружает (или генерирует) обучающую выборку
         Returns
         -------
-        Tuple[ndarray, ndarray, ndarray, ndarray]:
+        Tuple[ndarray, ndarray, ndarray, ndarray]
             Входные значения для обучения, входные значения для тестов,
             выходные значения для обучения, выходные значения для тестов
         """

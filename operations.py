@@ -32,11 +32,14 @@ class Operation(object):
         Выход получен вызовом соответствующего методоа _output
         Parameters
         ----------
-        input_: Вход для операции
-        inference: Обратный проход
+        input_: ndarray
+            Вход для операции
+        inference: bool
+            Обратный проход?
         Returns
         -------
-        ndarray: Результат выполнения операции
+        ndarray
+            Результат выполнения операции
         """
         self.input_ = input_
 
@@ -49,12 +52,13 @@ class Operation(object):
         Получение градиента при обратном проходе
         Parameters
         ----------
-        output_grad: Градиент на выходе операции (исходный градиент
-                     при обратном проходе)
+        output_grad: ndarray
+            Градиент на выходе операции (исходный градиент при обратном проходе)
         Returns
         -------
-        ndarray: Градиент на входе операции (результирующий градиент при
-                 обратном проходе)
+        ndarray
+            Градиент на входе операции (результирующий градиент при обратном
+            проходе)
         """
         assert_same_shape(self.output, output_grad)
 
@@ -69,7 +73,8 @@ class Operation(object):
         Метод вычисления выхода реализуется в наследниках
         Returns
         -------
-        ndarray: Результат выполнения операции
+        ndarray
+            Результат выполнения операции
         """
         raise NotImplementedError()
 
@@ -78,10 +83,12 @@ class Operation(object):
         Метод вычисления градиента реализуется в наследниках
         Parameters
         ----------
-        output_grad: Градиент, полученный от следующей операции
+        output_grad: ndarray
+            Градиент, полученный от следующей операции
         Returns
         -------
-        ndarray: Результат вычисления градиента при обратном проходе
+        ndarray
+            Результат вычисления градиента при обратном проходе
         """
         raise NotImplementedError()
 
@@ -97,7 +104,8 @@ class ParamOperation(Operation):
         Конструктор операции с параметром
         Parameters
         ----------
-        param: Параметр операции
+        param: ndarray
+            Параметр операции
         """
         super().__init__()
 
@@ -109,10 +117,12 @@ class ParamOperation(Operation):
         операции с параметром
         Parameters
         ----------
-        output_grad: Градиент на выходе
+        output_grad: ndarray
+            Градиент на выходе
         Returns
         -------
-        ndarray: Градиент на входе
+        ndarray
+            Градиент на входе
         """
         assert_same_shape(self.output, output_grad)
 
@@ -130,10 +140,12 @@ class ParamOperation(Operation):
         в наследниках
         Parameters
         ----------
-        output_grad: Градиент на выходе операции с параметром
+        output_grad: ndarray
+            Градиент на выходе операции с параметром
         Returns
         -------
-        ndarray: Градиент на входе операции с параметром
+        ndarray
+            Градиент на входе операции с параметром
         """
         raise NotImplementedError()
 
@@ -142,7 +154,8 @@ class ParamOperation(Operation):
         Метод вычисления выхода реализуется в наследниках
         Returns
         -------
-        ndarray: Результат выполнения операции
+        ndarray
+            Результат выполнения операции
         """
         raise NotImplementedError()
 
@@ -151,10 +164,12 @@ class ParamOperation(Operation):
         Метод вычисления градиента реализуется в наследниках
         Parameters
         ----------
-        output_grad: Градиент, полученный от следующей операции
+        output_grad: ndarray
+            Градиент, полученный от следующей операции
         Returns
         -------
-        ndarray: Результат вычисления градиента при обратном проходе
+        ndarray
+            Результат вычисления градиента при обратном проходе
         """
         raise NotImplementedError()
 
@@ -173,7 +188,8 @@ class WeightMultiply(ParamOperation):
         Конструктор операции с параметром, где self.param = W
         Parameters
         ----------
-        weight: Массив весов
+        weight: ndarray
+            Массив весов
         """
         super().__init__(weight)
 
@@ -182,7 +198,8 @@ class WeightMultiply(ParamOperation):
         Умножение (вычисление выхода)
         Returns
         -------
-        ndarray: Результат умножения (выход)
+        ndarray
+            Результат умножения (выход)
         """
         return np.dot(self.input_, self.param)
 
@@ -191,10 +208,12 @@ class WeightMultiply(ParamOperation):
         Вычисление градиента на входе
         Parameters
         ----------
-        output_grad:  Градиент на выходе
+        output_grad: ndarray
+            Градиент на выходе
         Returns
         -------
-        ndarray: Градиент на входе
+        ndarray
+            Градиент на входе
         """
         return np.dot(output_grad, np.transpose(self.param, (1, 0)))
 
@@ -203,10 +222,12 @@ class WeightMultiply(ParamOperation):
         Вычисление градиента по параметру
         Parameters
         ----------
-        output_grad: Градиент на выходе
+        output_grad: ndarray
+            Градиент на выходе
         Returns
         -------
-        ndarray: Градиент на входе
+        ndarray
+            Градиент на входе
         """
         return np.dot(np.transpose(self.input_, (1, 0)), output_grad)
 
@@ -220,7 +241,8 @@ class BiasAdd(ParamOperation):
         Конструктор операции с параметром, где self.param = B
         Parameters
         ----------
-        bias: Массив смещений
+        bias: ndarray
+            Массив смещений
         """
         assert bias.shape[0] == 1
 
@@ -231,7 +253,8 @@ class BiasAdd(ParamOperation):
         Добавление смещений (получение выхода)
         Returns
         -------
-        ndarray: Результат добавления
+        ndarray
+            Результат добавления
         """
         return self.input_ + self.param
 
@@ -240,10 +263,12 @@ class BiasAdd(ParamOperation):
         Вычисление градиента на входе
         Parameters
         ----------
-        output_grad:  Градиент на выходе
+        output_grad: ndarray
+            Градиент на выходе
         Returns
         -------
-        ndarray: Градиент на выходе
+        ndarray
+            Градиент на выходе
         """
         return np.ones_like(self.input_) * output_grad
 
@@ -252,10 +277,12 @@ class BiasAdd(ParamOperation):
         Вычисление градиента по параметру на входе
         Parameters
         ----------
-        output_grad: Градиент на выходе
+        output_grad: ndarray
+            Градиент на выходе
         Returns
         -------
-        ndarray: Градиент по параметру на входе
+        ndarray
+            Градиент по параметру на входе
         """
         param_grad = np.ones_like(self.param) * output_grad
         return np.sum(param_grad, axis=0).reshape(1, param_grad.shape[1])
@@ -273,7 +300,8 @@ class Dropout(Operation):
         Конструктор
         Parameters
         ----------
-        keep_prob: Вероятность того, что нейрон не будет выключен
+        keep_prob: ndarray
+            Вероятность того, что нейрон не будет выключен
         """
         super().__init__()
         self.keep_prob = keep_prob
@@ -283,10 +311,12 @@ class Dropout(Operation):
         Прореживание
         Parameters
         ----------
-        inference: Обратный проход?
+        inference: bool
+            Обратный проход?
         Returns
         -------
-        ndarray: Прореженный массив
+        ndarray
+            Прореженный массив
         """
         if inference:
             return self.input_ * self.keep_prob
@@ -300,10 +330,12 @@ class Dropout(Operation):
         Вычисление градиента на входе
         Parameters
         ----------
-        output_grad: Градиент на выходе
+        output_grad: ndarray
+            Градиент на выходе
         Returns
         -------
-        ndarray: Градиент на входе
+        ndarray
+            Градиент на входе
         """
         return output_grad * self.mask
 
@@ -325,10 +357,12 @@ class Sigmoid(Operation):
         Вычисление сигмоиды (выход)
         Parameters
         ----------
-        inference: Обратный проход?
+        inference: bool
+            Обратный проход?
         Returns
         -------
-        ndarray: Массив активаций
+        ndarray
+            Массив активаций
         """
         return 1.0 / (1.0 + np.exp(-self.input_))
 
@@ -337,10 +371,12 @@ class Sigmoid(Operation):
         Вычисление градиента на входе
         Parameters
         ----------
-        output_grad: Градиент на выходе
+        output_grad: ndarray
+            Градиент на выходе
         Returns
         -------
-        ndarray: Градиент на входе
+        ndarray
+            Градиент на входе
         """
         sigmoid_backward = self.output * (1.0 - self.output)
         input_grad = sigmoid_backward * output_grad
@@ -359,10 +395,12 @@ class Linear(Operation):
         Вход передаётся на выход без изменений
         Parameters
         ----------
-        inference: Обратный проход
+        inference: bool
+            Обратный проход
         Returns
         -------
-        ndarray: Массив активаций
+        ndarray
+            Массив активаций
         """
         return self.input_
 
@@ -371,10 +409,12 @@ class Linear(Operation):
         Градиент передаётся на вход без изменений
         Parameters
         ----------
-        output_grad: Градиент на выходе
+        output_grad: ndarray
+            Градиент на выходе
         Returns
         -------
-        ndarray: Градиент на входе
+        ndarray
+            Градиент на входе
         """
         return output_grad
 
@@ -391,10 +431,12 @@ class Tanh(Operation):
         Вычисление гиперболического тангенса
         Parameters
         ----------
-        inference: Обратный проход
+        inference: bool
+            Обратный проход
         Returns
         -------
-        ndarray: Массив активаций
+        ndarray
+            Массив активаций
         """
         return np.tanh(self.input_)
 
@@ -403,10 +445,12 @@ class Tanh(Operation):
         Вычисление градиента на входе
         Parameters
         ----------
-        output_grad: Градиент на выходе
+        output_grad: ndarray
+            Градиент на выходе
         Returns
         -------
-        ndarray: Градиент на выходе
+        ndarray
+            Градиент на выходе
         """
         return output_grad * (1 - self.output * self.output)
 
@@ -423,10 +467,12 @@ class LeakyReLU(Operation):
         Вычисление LeakyReLU
         Parameters
         ----------
-        inference: Обратный проход
+        inference: bool
+            Обратный проход
         Returns
         -------
-        ndarray: Массив активаций
+        ndarray
+            Массив активаций
         """
         return np.where(self.input_ > 0.0, self.input_, 0.2 * self.input_)
 
@@ -435,10 +481,12 @@ class LeakyReLU(Operation):
         Вычисление градиента на входе
         Parameters
         ----------
-        output_grad: Градиент на выходе
+        output_grad: ndarray
+            Градиент на выходе
         Returns
         -------
-        ndarray: Градиент на входе
+        ndarray
+            Градиент на входе
         """
         leakyrelu_backward = np.where(self.output > 0.0, 1.0, 0.2)
         input_grad = leakyrelu_backward * output_grad
@@ -457,10 +505,12 @@ class ReLU(Operation):
         Вычисление LeakyReLU
         Parameters
         ----------
-        inference: Обратный проход
+        inference: bool
+            Обратный проход
         Returns
         -------
-        ndarray: Массив активаций
+        ndarray
+            Массив активаций
         """
         return np.clip(self.input_, 0, None)
 
@@ -469,10 +519,12 @@ class ReLU(Operation):
         Вычисление градиента на входе
         Parameters
         ----------
-        output_grad: Градиент на выходе
+        output_grad: ndarray
+            Градиент на выходе
         Returns
         -------
-        ndarray: Градиент на входе
+        ndarray
+            Градиент на входе
         """
         mask = self.output >= 0
         return output_grad * mask
