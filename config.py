@@ -7,6 +7,7 @@ from typing import Tuple, Any
 from os.path import exists
 
 import numpy as np
+from numpy import ndarray
 
 from data_loaders import MNISTDataLoader, ApproximationDataLoader, DataLoader
 from exceptions import OptimizerNotFoundException, \
@@ -18,7 +19,7 @@ from networks import NeuralNetwork
 from operations import Sigmoid, Linear, LeakyReLU, ReLU, Tanh
 from optimizers import SGD, SGDMomentum, Optimizer
 from trainers import Trainer
-from utils import calc_accuracy_model, show_results, show_results3d
+from utils import calc_accuracy_model, show_results, show_results3d, show_results_losses
 
 
 # noinspection PyTypeChecker,PyArgumentList
@@ -318,7 +319,7 @@ class Configuration(object):
                 elif self.inputs["count"] == 2:
                     function = show_results3d
                 else:
-                    raise TooManyInputsException
+                    function = show_results_losses
                 return function, params
             else:
                 return

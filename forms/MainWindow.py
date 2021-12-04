@@ -2,9 +2,10 @@
 Модуль с описанием класса, представляющего интерфейс главного окна
 """
 from os.path import join
+from queue import Queue
 
 from PyQt5 import QtGui
-from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtCore import QCoreApplication, QObject, pyqtSignal
 from PyQt5.QtWidgets import QTextEdit
 
 from forms.MainWindowSlots import MainWindowSlots
@@ -56,9 +57,17 @@ class MainWindow(MainWindowSlots):
 
 class OutLog:
     """
-    Клосс с описанием логгера, который перенаправляет вывод в заданный элемент
-    QTextEdit
+        Клосс с описанием логгера, который перенаправляет вывод в заданный элемент
+        QTextEdit
     """
+    class LogSignals(QObject):
+        """
+        Сигналы логгера
+        """
+        new_msg = pyqtSignal()
+
+    _MSG_QUEUE: Queue
+
     def __init__(self, edit: QTextEdit) -> None:
         """
         При создании назначениется элемент для вывода в него тестовой информации
@@ -67,17 +76,24 @@ class OutLog:
         edit: Поля для вывода
         """
         self.edit = edit
+        self._MSG_QUEUE = Queue()
+        self.signals = self.LogSignals()
+        self.signals.new_msg.connect(self._update)
 
     def write(self, msg) -> None:
         """
-        Запись вывода в файл
+        Запись вывода в поле
         Parameters
         ----------
         msg: Сообщение
         """
+        self._MSG_QUEUE.put_nowait(msg)
+        self.signals.new_msg.emit()
+
+    def _update(self):
         # перемещение курсора в конец
         self.edit.moveCursor(QtGui.QTextCursor.End)
-        self.edit.insertPlainText(msg)  # запись сообщния
+        self.edit.insertPlainText(self._MSG_QUEUE.get())  # запись сообщния
 
     def flush(self) -> None:
         """

@@ -7,6 +7,7 @@ import sys
 import traceback
 from queue import Queue
 from typing import List, Any, Tuple, Callable
+from copy import deepcopy
 
 import matplotlib
 import numpy as np
@@ -104,13 +105,7 @@ class MainWindowSlots(Ui_MainWindow):
         self.decayComboBox.addItems(list(self._DECAY_TYPES.keys()))
         self.optimizerComboBox.addItems(list(self._OPTIMIZERS.keys()))
 
-        self._thread_pool = QThreadPool()  # инициализация пула тредов
-        """т.к. обучение имеет не thread-safe реализацию, то одновременное 
-        выполнение нескольких попыток обучения не возможно. задание 
-        максимального числа тредов позволяет перенести ответственность за 
-        слежение за количеством выполняемых тредов, организацию тредов в очередь
-        и т.д. на сам пул тредов"""
-        self._thread_pool.setMaxThreadCount(1)
+        self._thread_pool = QThreadPool().globalInstance()  # инициализация пула
         self._results_queue = Queue()  # инициализация очереди для результатов
         self._models_queue = Queue()  # инициализация очереди для моделей
         self._count = 0  # инициализация кол-ва завершившихся тредов
@@ -269,16 +264,22 @@ class MainWindowSlots(Ui_MainWindow):
         # если ошибок нет
         # деактивация кнопки запуска обучения
         self.startButton.setEnabled(False)
+        self.exportButton.setEnabled(False)
         # обновление конфигурации в соответствии со считанными данными
         self._config.update(self._values)
         self._config.save()  # сохранение конфигурации
         data = self._config.get_data()  # получение входных данных
-        trainer = self._config.get_trainer()  # получение тренера
-        # получение аргументов для вызова функции обучения
-        fit_params = self._config.get_fit_params(data)
-
+        self.progressLabel.setText(f"{self._count} / "
+                                   f"{self._config.train['restarts']}")
         # цикл по кол-ву перезапусков
         for ii in range(self._config.train["restarts"]):
+            # создание копии конфигуарции для запуска обучения в нескольких
+            # потоках
+            cfg = deepcopy(self._config)
+            trainer = cfg.get_trainer()  # получение тренера
+            # получение аргументов для вызова функции обучения
+            fit_params = cfg.get_fit_params(data)
+            self._models_queue.put_nowait(cfg.model)  # сохранение модели
             # создание рабочего треда для выполнения обучения с заданными
             # параметрами
             worker = _Worker(fn=trainer.fit,  # функция, выполняемая в треде
@@ -787,7 +788,6 @@ class MainWindowSlots(Ui_MainWindow):
         result: Результат обучения
         """
         self._results_queue.put_nowait(result)
-        self._models_queue.put_nowait(self._config.model)
 
     def _plot(self, fig: Figure) -> None:
         """
@@ -814,6 +814,8 @@ class MainWindowSlots(Ui_MainWindow):
         перезапусков, обработка не выполняется.
         """
         self._count += 1  # увеличение кол-ва завершившихся тредов
+        self.progressLabel.setText(f"{self._count} / "
+                                   f"{self._config.train['restarts']}")
         # если завершились не все треды
         if self._count < self._config.train["restarts"]:
             return  # обработки не происходит
@@ -837,6 +839,7 @@ class MainWindowSlots(Ui_MainWindow):
             fig, _ = graph_function(**graph_params)  # получение фигуры
             self._plot(fig)  # отображение графика
         self.startButton.setEnabled(True)  # разблок-ка кнопки запуска обучения
+        self.exportButton.setEnabled(True)
 
 
 class _WorkerSignals(QObject):

@@ -372,6 +372,38 @@ def show_results3d(losses: List[float],
     return fig, (ax1, ax2, ax3)
 
 
+def show_results_losses(losses: List[float],
+                        x_test: ndarray,
+                        pred_test: ndarray,
+                        y_test: ndarray,
+                        function_name: str,
+                        neurons: List[int]) -> Tuple:
+    """
+    Функия для отрисовки графика функции потерь по результатам обучения
+    нейросети, аппроксимирующей математические функции одной переменной
+    Parameters
+    ----------
+    losses: Список потерь
+    x_test: Массив входных значений
+    pred_test: Массив выходных значений
+    y_test: Массив требуемых выходных значений
+    function_name: Название функции
+    neurons: Количество нейронов
+    Returns
+    -------
+    Фигура и оси
+    """
+    fig = plt.figure()
+
+    ax = plt.subplot()
+    ax.plot(range(len(losses)), losses)
+    ax.set_title('функция потерь')
+    ax.set(xlabel='опросы', ylabel='потеря')
+    ax.grid()
+
+    return fig, (ax, )
+
+
 def show_function(function: Callable,
                   limits: List[List[float]] = None) -> Tuple:
     """
