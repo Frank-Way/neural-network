@@ -7,7 +7,7 @@ import sys
 import traceback
 from queue import Queue
 from typing import List, Any, Tuple, Callable
-from copy import deepcopy
+from copy import deepcopy, copy
 
 import matplotlib
 import numpy as np
@@ -19,7 +19,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, \
     NavigationToolbar2QT
 from matplotlib.figure import Figure
 
-from config import Configuration
+from config import ConfigHandler, InputsConfig, TrainConfig, LayersConfig, LayerConfig, Config, ConfigUtils
 from forms.UI_MainWindow import Ui_MainWindow
 from losses import MeanSquaredError, SoftmaxCrossEntropy
 from operations import Linear, Sigmoid, Tanh, ReLU, LeakyReLU
@@ -66,15 +66,10 @@ class MainWindowSlots(Ui_MainWindow):
     _count: int  # кол-во завершившихся тредов (исп-ся для обраб-ки рез-ов)
 
     _PATH: str  # путь к файлу с конфигурацией
-    _config: Configuration  # конфигурация
-    _values: dict  # считанные с формы параметры конфигурации
+    _config_handler: ConfigHandler  # обработчик конфигураций
+    _config: Config  # конфигурация
+    _unvalidated_config: Config  # непроверенная конфигурация
     _best_model: Any  # лучшая обученная модель
-
-    _inputs: int  # количество входов нейросети
-    _layers: int  # количество слоёв нейросети
-    _str_expression: str  # строковое представление моделируемой функции
-    _function: Any  # моделируемая функция
-    _limits: List[List[float]]  # границы входных переменных
 
     # поля для ввода границ входных значений
     _limit_edits: List[List[QtWidgets.QLineEdit]]
@@ -110,8 +105,6 @@ class MainWindowSlots(Ui_MainWindow):
         self._models_queue = Queue()  # инициализация очереди для моделей
         self._count = 0  # инициализация кол-ва завершившихся тредов
 
-        self._limits = None  # инициализация границ входных значений
-        self._function = None  # инициализация функции
         self._best_model = None  # инициализация модели
 
     def load(self, path: str) -> None:
@@ -124,49 +117,49 @@ class MainWindowSlots(Ui_MainWindow):
         """
         # загрузка конфигурации
         self._PATH = path
-        self._config = Configuration(path)
-        self._config.load()
+        config = Config.load(path)
+        self._config_handler = ConfigHandler(path, config)
 
         # считывание и установка количества входов
-        self._inputs = self._config.inputs["count"]
-        self.inputsSpinBox.setValue(self._inputs)
+        inputs = config.inputs.count
+        layers = config.layers.count
+        self.inputsSpinBox.setValue(inputs)
         # заполнение полей для ввода границ входных значений
-        for ii in range(self._inputs):
+        for ii in range(inputs):
             for jj in range(2):
                 self._limit_edits[ii][jj].setText(
-                    str(self._config.inputs["limits"][ii][jj]))
+                    str(config.inputs.limits[ii][jj]))
         # заполнение различных полей, выбор нужных значений в выпадающих списках
-        self.functionTextEdit.setText(self._config.inputs["function"])
-        self.sampleSizeEdit.setText(str(self._config.inputs["size"]))
-        self.testSizeEdit.setText(str(self._config.inputs["p_to_test"]))
-        self.extendEdit.setText(str(self._config.inputs["p_to_extend"]))
-        self.lrEdit.setText(str(self._config.train["lr"]))
-        self.lrFinalEdit.setText(str(self._config.train["final_lr"]))
+        self.functionTextEdit.setText(config.inputs.function)
+        self.sampleSizeEdit.setText(str(config.inputs.size))
+        self.testSizeEdit.setText(str(config.inputs.p_to_test))
+        self.extendEdit.setText(str(config.inputs.p_to_extend))
+        self.lrEdit.setText(str(config.train.lr))
+        self.lrFinalEdit.setText(str(config.train.final_lr))
         self._set_combobox_item(self.decayComboBox, "decay_type")
-        self.epochsEdit.setText(str(self._config.train["epochs"]))
-        self.queryEdit.setText(str(self._config.train["query_times"]))
-        self.batchSizeEdit.setText(str(self._config.train["batch_size"]))
-        self.stoppingCheckBox.setChecked(self._config.train["early_stopping"])
-        self.printCheckBox.setChecked(self._config.train["print_results"])
-        self.plotsCheckBox.setChecked(self._config.train["show_plots"])
+        self.epochsEdit.setText(str(config.train.epochs))
+        self.queryEdit.setText(str(config.train.query_times))
+        self.batchSizeEdit.setText(str(config.train.batch_size))
+        self.stoppingCheckBox.setChecked(config.train.early_stopping)
+        self.printCheckBox.setChecked(config.train.print_results)
+        self.plotsCheckBox.setChecked(config.train.show_plots)
         self._set_combobox_item(self.lossComboBox, "loss")
         self._set_combobox_item(self.optimizerComboBox, "optimizer")
-        self.momentumEdit.setText(str(self._config.train["momentum"]))
-        self.restartsSpinBox.setValue(self._config.train["restarts"])
+        self.momentumEdit.setText(str(config.train.momentum))
+        self.restartsSpinBox.setValue(config.train.restarts)
         # считывание и установка количества слоёв
-        self._layers = self._config.layers["count"]
-        self.layersSpinBox.setValue(self._layers)
+
+        self.layersSpinBox.setValue(layers)
         # заполнение полей для ввода количества нейронов, dropout'а и установка
         # значений в выпадающие списки для выбора функции активации
-        for ii in range(self._layers):
+        for ii in range(layers):
             self._neuron_edits[ii].setText(
-                str(self._config.layers["config"][ii]["neurons"]))
+                str(config.layers.layers_config[ii].neurons))
             self._activation_comboboxes[ii]. \
                 setCurrentIndex(self._activation_comboboxes[ii].
-                                findText(self._DECODER[self._config.
-                                         layers["config"][ii]["activation"]]))
+                                findText(self._DECODER[config.layers.layers_config[ii].activation]))
             self._dropout_edits[ii].setText(
-                str(self._config.layers["config"][ii]["dropout"]))
+                str(config.layers.layers_config[ii].dropout))
 
     def inputs_count_changed(self) -> None:
         """
@@ -174,15 +167,15 @@ class MainWindowSlots(Ui_MainWindow):
         Создаются соответствующие поля для ввода границ входных значений,
         изменяется подпись к полю для ввода функции.
         """
-        self._limits = None
-        self._function = None
+        inputs = self._read_inputs_count()
+        if inputs is None: return
         self._init_limit_edits()
-        if self._inputs == 1:
+        if inputs == 1:
             self.inputsMinMaxLabel.setText("F(X1) =")
-        elif self._inputs == 2:
+        elif inputs == 2:
             self.inputsMinMaxLabel.setText("F(X1, X2) =")
         else:
-            self.inputsMinMaxLabel.setText(f"F(X1, ..., X{self._inputs}) =")
+            self.inputsMinMaxLabel.setText(f"F(X1, ..., X{inputs}) =")
 
     def layers_count_changes(self) -> None:
         """
@@ -197,10 +190,10 @@ class MainWindowSlots(Ui_MainWindow):
         Обработчик клика по кнопке проверки функции. Результат проверки
         выводится во всплывающем окне QMessageBox
         """
-        self._read_function()  # чтение функции
-
-        valid = self._is_function_valid()  # проверка функции
-
+        inputs = self._read_inputs_count()
+        if inputs is None: return
+        _, fn = self._read_function()
+        valid = ConfigUtils.is_function_valid(fn, inputs)
         if not valid:  # если функция не корректна
             QMessageBox.about(self.centralwidget, "Ошибка",
                               "Не удалось прочитать функцию")
@@ -213,43 +206,27 @@ class MainWindowSlots(Ui_MainWindow):
         Построение графика введённой функции в заданных границах
         """
         # считывание количества входов функции
-        try:
-            self._inputs = self.inputsSpinBox.value()
-        except ValueError:
-            QMessageBox.warning(self.centralwidget, "Ошибка",
-                                "Не удалось считать количество входов")
-            return
-        # проверка количества входов
-        if self._inputs > 2:  # доступны 2- и 3-мерные графики
-            QMessageBox.warning(self.centralwidget, "Ошибка",
-                                "Для указанного количества входов "
-                                "построение графков не доступно")
-            return
-        # чтение функции
-        if self._function is None:
-            self._read_function()
+        inputs = self._read_inputs_count()
+        if inputs is None: return 
+        simplified_function, fn = self._read_function()  # чтение функции
         # чтение границ изменения входных переменных
-        try:
-            self._read_limits()
-        except ValueError:
-            QMessageBox.warning(self.centralwidget, "Ошибка",
-                                "Не удалось считать границы входных "
-                                "переменных")
-            return
-        # проверка наличия границ
-        if self._limits is None:
-            QMessageBox.warning(self.centralwidget, "Ошибка",
-                                "Не удалось считать границы для "
-                                "входных переменных")
-            return
-        # построение графика функции одной переменной
-        if self._inputs == 1:
-            fig, _ = show_function(self._function, self._limits)
-        # построение графика функции двух переменных
-        elif self._inputs == 2:
-            fig, _ = show_function3d(self._function, self._limits)
-        # отображение графика
-        self._plot(fig)
+        limits = self._read_limits()
+        if inputs == 1:  # построение графика функции одной переменной
+            figs_axs = show_function(simplified_function, fn, limits)
+        elif inputs == 2:  # построение графика функции двух переменных
+            figs_axs = show_function3d(simplified_function, fn, limits)
+        else:
+            QMessageBox.information(self.centralwidget, "Внимание",
+                                    "Для указанного количества входов "
+                                    "построение графков доступно только при "
+                                    "X1=X2=...=Xn\nГраницы при этом будут "
+                                    "взяты для X1")
+            for ii in range(2, inputs + 1):
+                simplified_function = simplified_function.replace(f"x{ii}", "x1")
+            fn = ConfigUtils.lambidify_function(simplified_function, 1)
+            figs_axs = show_function(simplified_function, fn, limits)
+        for fig, _ in figs_axs:
+            self._plot(fig)  # отображение графика
 
     def run(self) -> None:
         """
@@ -266,17 +243,20 @@ class MainWindowSlots(Ui_MainWindow):
         # деактивация кнопки запуска обучения
         self.startButton.setEnabled(False)
         self.exportButton.setEnabled(False)
-        # обновление конфигурации в соответствии со считанными данными
-        self._config.update(self._values)
-        self._config.save()  # сохранение конфигурации
-        data = self._config.get_data()  # получение входных данных
+        if self._config_handler is None:
+            self._config_handler = ConfigHandler(
+                self._PATH, deepcopy(self._unvalidated_config))
+        else:
+            self._config_handler.config = deepcopy(self._unvalidated_config)
+        self._config_handler.config.save(self._PATH)
+        data = self._config_handler.get_data()  # получение входных данных
         self.progressLabel.setText(f"{self._count} / "
-                                   f"{self._config.train['restarts']}")
+                                   f"{self._config_handler.config.train.restarts}")
         # цикл по кол-ву перезапусков
-        for ii in range(self._config.train["restarts"]):
+        for ii in range(self._config_handler.config.train.restarts):
             # создание копии конфигуарции для запуска обучения в нескольких
             # потоках
-            cfg = deepcopy(self._config)
+            cfg = deepcopy(self._config_handler)
             trainer = cfg.get_trainer()  # получение тренера
             # получение аргументов для вызова функции обучения
             fit_params = cfg.get_fit_params(data)
@@ -308,8 +288,8 @@ class MainWindowSlots(Ui_MainWindow):
             QMessageBox.warning(self.centralwidget,
                                 "Ошибка", "Нет обученной модели для экспорта")
             return
-        self._config.model = self._best_model
-        print(self._config.export_model())
+        self._config_handler.model = self._best_model
+        print(self._config_handler.export_model())
 
     def tabs_help(self) -> None:
         """
@@ -481,14 +461,15 @@ class MainWindowSlots(Ui_MainWindow):
         """
         Создание полей для ввода границ входных значений
         """
-        self._inputs = int(self.inputsSpinBox.value())  # чтение кол-ва входов
+        inputs = self._read_inputs_count()
+        if inputs is None: return 
         self.inputsMinMaxTable.clear()  # очистка таблицы
         # установка количества строк таблицы
-        self.inputsMinMaxTable.setRowCount(self._inputs)
+        self.inputsMinMaxTable.setRowCount(inputs)
         # заготовка под список полей для ввода
         self._limit_edits = [[None for jj in range(2)]
-                             for ii in range(self._inputs)]
-        for ii in range(self._inputs):  # цикл по количеству входов
+                             for ii in range(inputs)]
+        for ii in range(inputs):  # цикл по количеству входов
             for jj in range(2):  # цикл по количеству границ
                 # создание и настройка поля для ввода
                 edit = QtWidgets.QLineEdit(self.inputsMinMaxTable)
@@ -504,14 +485,15 @@ class MainWindowSlots(Ui_MainWindow):
         Создание полей для ввода количества нейронов и dropout'a и выпадающих
         списков для выбора функции активации
         """
-        self._layers = int(self.layersSpinBox.value())  # чтение кол-ва слоёв
+        layers = self._read_layers_count()
+        if layers is None: return 
         self.layersTable.clearContents()  # очистка таблицы
-        self.layersTable.setRowCount(self._layers)  # установка кол-ва строк
+        self.layersTable.setRowCount(layers)  # установка кол-ва строк
         # заготовка списков для хранения элементов
         self._neuron_edits = []
         self._activation_comboboxes = []
         self._dropout_edits = []
-        for ii in range(self._layers):  # цикл по количеству слоёв
+        for ii in range(layers):  # цикл по количеству слоёв
             # создание и настройка поля для ввода кол-ва нейронов
             edit = QtWidgets.QLineEdit(self.layersTable)
             edit.setObjectName(f"neuronEdit{ii + 1}")
@@ -539,6 +521,7 @@ class MainWindowSlots(Ui_MainWindow):
             # отображение поля для ввода в таблице
             self.layersTable.setCellWidget(ii, 2, edit)
 
+
     def _set_combobox_item(self, cb: QComboBox, property_name: str) -> None:
         """
         Установка значения в выпадающем списке в соответствии со значением в
@@ -552,53 +535,60 @@ class MainWindowSlots(Ui_MainWindow):
         """
         cb. \
             setCurrentIndex(
-                cb.findText(self._DECODER[self._config.train[property_name]]))
+                cb.findText(self._DECODER[self._config_handler.config.train.__getattribute__(property_name)]))
 
-    def _read_limits(self) -> None:
+    def _read_limits(self) -> List[List[float]]:
         """
         Чтение границ входных переменных
         """
-        self._limits = [[None for jj in range(2)] for ii in range(self._inputs)]
-        for ii in range(self._inputs):
+        inputs = self._read_inputs_count()
+        if inputs is None: return 
+        limits = [[None for jj in range(2)] for ii in range(inputs)]
+        for ii in range(inputs):
             for jj in range(2):
-                self._limits[ii][jj] = float(self._limit_edits[ii][jj].text())
+                try:
+                    limits[ii][jj] = float(self._limit_edits[ii][jj].text())
+                except ValueError:
+                    return
+        return limits
+    
+    def _read_inputs_count(self) -> int:
+        try:
+            inputs = int(self.inputsSpinBox.value())
+            if inputs < 1:
+                raise ValueError
+            return inputs
+        except ValueError:
+            QMessageBox.warning(self.centralwidget, "Ошибка",
+                                "Не удалось считать количество входов")
+    
+    def _read_layers_count(self) -> int:
+        try:
+            layers = int(self.layersSpinBox.value())
+            if layers < 1:
+                raise ValueError
+            return layers
+        except ValueError:
+            QMessageBox.warning(self.centralwidget, "Ошибка",
+                                "Не удалось считать количество слоёв")
 
-    def _read_function(self) -> None:
-        """
-        Чтение функции
-        """
-        # чтение пользовательского ввода, преобразование к нижнему регистру
-        function = str(self.functionTextEdit.toPlainText()).lower()
-        # получение символов x1, x2, ..., xn
-        input_symbols = [sympy.Symbol(f"x{ii + 1}")
-                         for ii in range(self._inputs)]
-        # упрощение выражения
-        simplified_expression = sympy.simplify(function)
-        self._str_expression = str(simplified_expression)
-        # получение вызываемой функции
-        self._function = sympy.lambdify(input_symbols,
-                                        simplified_expression)
 
-    def _is_function_valid(self) -> bool:
-        """
-        Проверка функции на корректность
-        Returns
-        -------
-        bool
-            Результат проверки
-        """
-        valid = True
-        try:  # попытка вычислить значение функции от случайных аргументов
-            res = self._function(*(10 * np.random.random(self._inputs) - 5))
-        # если функция задана не правильно, function генерирует это исключение
-        except NameError:
-            valid = False  # функция задана не правильно
+    def _read_function(self) -> Tuple[str, Callable]:
+        simplified_function, fn = None, None
+        try:
+            str_function = str(self.functionTextEdit.toPlainText()).lower()
+            inputs = self._read_inputs_count()
+        except ValueError:
+            QMessageBox.warning(self.centralwidget, "Ошибка",
+                                "Не удалось считать количество входов или функцию")
+        try:
+            simplified_function = ConfigUtils.simplify_function(str_function)
+            fn = ConfigUtils.lambidify_function(simplified_function, inputs)
+        except Exception:
+            QMessageBox.warning(self.centralwidget, "Ошибка",
+                                "Не удалось интерпретировать функцию")
+        return simplified_function, fn
 
-        # проверка типа возвращаемого значения
-        if valid and type(res) != np.float64:  # если было возвращено не число
-            valid = False  # функция задана не правильно
-
-        return valid
 
     def _read(self) -> None:
         """
@@ -606,13 +596,18 @@ class MainWindowSlots(Ui_MainWindow):
         """
         read_failure = False  # пока не было ошибок при чтении
         try:  # попытка чтения
-            self._inputs = abs(int(self.inputsSpinBox.value()))
-            self._read_function()
-            self._read_limits()
+            inputs = self._read_inputs_count()
+            if inputs is None: return
+            str_function = str(self.functionTextEdit.toPlainText()).lower()
+            limits = self._read_limits()
             size = abs(int(self.sampleSizeEdit.text()))
             batch_size = min(size, abs(int(self.batchSizeEdit.text())))
             test_size = abs(float(self.testSizeEdit.text()))
             extending = abs(float(self.extendEdit.text()))
+            inputs_config = InputsConfig(
+                inputs, "", "ap", ConfigUtils.simplify_function(str_function),
+                limits, size, False, test_size, extending)
+
             lr = abs(float(self.lrEdit.text()))
             lr_final = min(lr, abs(float(self.lrFinalEdit.text())))
             decay_type = self._ENCODER[self.decayComboBox.currentText()]
@@ -627,14 +622,22 @@ class MainWindowSlots(Ui_MainWindow):
             if optimizer == "sgdm":
                 momentum = abs(float(self.momentumEdit.text()))
             restarts = abs(int(self.restartsSpinBox.value()))
-            self._layers = abs(int(self.layersSpinBox.value()))
-            layers_config = []
-            for ii in range(self._layers):
+            train_config = TrainConfig(
+                0, False, lr, lr_final, decay_type, epochs, queries, batch_size,
+                early_stopping, printing, plotting, momentum, loss, optimizer,
+                "t", restarts)
+
+            layers = self._read_layers_count()
+            if layers is None: return
+            layer_config_list = []
+            for ii in range(layers):
                 neurons = abs(int(self._neuron_edits[ii].text()))
-                activation = self._ENCODER[self.
-                    _activation_comboboxes[ii].currentText()]
+                activation = \
+                    self._ENCODER[self._activation_comboboxes[ii].currentText()]
                 dropout = abs(float(self._dropout_edits[ii].text()))
-                layers_config.append((neurons, activation, dropout))
+                layer_config_list.append(LayerConfig(neurons, "dense",
+                                                     activation, dropout, "glorot"))
+            layers_config = LayersConfig(layers, layer_config_list)
         # если какое-либо поле не было заполнено, то генерируется исключение
         # ValueError, после чего появляется всплывающее окно с сообщением об
         # ошибке, а считанные значения не сохраняются
@@ -642,42 +645,10 @@ class MainWindowSlots(Ui_MainWindow):
             read_failure = True
             QMessageBox.warning(self.centralwidget, "Ошибка",
                                 "Заполните все поля корректными значениями")
-        self._values = None
         if not read_failure:  # если чтение прошло успешно
-            # считанные значения заносятся в соответствующий словарь
-            self._values = {"inputs": {"count": self._inputs,
-                                       "path": "",
-                                       "data_loader": "ap",
-                                       "function": self._str_expression,
-                                       "limits": self._limits,
-                                       "size": size,
-                                       "scale_inputs": False,
-                                       "p_to_test": test_size,
-                                       "p_to_extend": extending},
-                            "train": {"seed": 0,
-                                      "use_seed": False,
-                                      "lr": lr,
-                                      "final_lr": lr_final,
-                                      "decay_type": decay_type,
-                                      "epochs": epochs,
-                                      "query_times": queries,
-                                      "batch_size": batch_size,
-                                      "early_stopping": early_stopping,
-                                      "print_results": printing,
-                                      "show_plots": plotting,
-                                      "momentum": momentum,
-                                      "loss": loss,
-                                      "optimizer": optimizer,
-                                      "trainer": "t",
-                                      "restarts": restarts},
-                            "layers": {"count": self._layers,
-                                       "config": [{
-                                           "neurons": layers_config[ii][0],
-                                           "class": "dense",
-                                           "activation": layers_config[ii][1],
-                                           "dropout": layers_config[ii][2],
-                                           "weight_init": "glorot"
-                                       } for ii in range(self._layers)]}}
+            # считанные значения запоминаются
+            self._unvalidated_config = Config(
+                inputs=inputs_config, train=train_config, layers=layers_config)
 
     def _validate(self) -> str:
         """
@@ -689,104 +660,7 @@ class MainWindowSlots(Ui_MainWindow):
         str
             Сообщение об ошибках (при их наличии)
         """
-        message = ""  # сообщение об ошибках
-        # если были ошибки при чтении, проверка не выполняется
-        if self._values is None:
-            return "Чтение параметров не было выполнено"
-
-        # проверка различных значений
-        valid_inputs = self._inputs != 0
-        message += "" if valid_inputs else "Число входов должно быть" \
-                                           " отлично от нуля\n"
-
-        valid_function = self._is_function_valid()
-        message += "" if valid_function else "Функция задана неверно\n"
-
-        valid_limits = all(map(lambda limit: limit[0] < limit[1],
-                               self._values["inputs"]["limits"]))
-        message += "" if valid_limits else "Левая граница для входа должна " \
-                                           "быть строго меньше правой\n"
-
-        valid_size = self._values["inputs"]["size"] != 0
-        message += "" if valid_size else "Размер выборки должен быть" \
-                                         " отличен от нуля\n"
-
-        valid_batch = self._values["train"]["batch_size"] != 0
-        message += "" if valid_batch else "Размер пакета должен быть" \
-                                          " отличен от нуля\n"
-
-        valid_test = self._values["inputs"]["p_to_test"] != 0.0
-        message += "" if valid_test else "Размер тестовой выборки должен " \
-                                         "быть отличен от нуля\n"
-
-        valid_lr = 0.0 < self._values["train"]["lr"] <= 2
-        message += "" if valid_lr else "Начальная скорость обучения должна " \
-                                       "быть в пределах (0; 2]\n"
-
-        valid_final_lr = 0.0 < self._values["train"]["final_lr"] <= 2
-        message += "" if valid_final_lr else "Конечная скорость обучения " \
-                                             "должна быть в пределах (0; 2]\n"
-
-        valid_decay = self._values["train"]["decay_type"] is not None
-        message += "" if valid_decay else "Не выбран способ снижения " \
-                                          "скорости обучения\n"
-
-        valid_loss = self._values["train"]["loss"] is not None
-        message += "" if valid_loss else "Не выбрана функция потерь\n"
-
-        valid_optimizer = self._values["train"]["optimizer"] is not None
-        message += "" if valid_optimizer else "Не выбран оптимизатор\n"
-
-        valid_epochs = self._values["train"]["epochs"] > 1
-        message += "" if valid_epochs else "Количество эпох обучения " \
-                                           "должно быть больше 1\n"
-
-        valid_queries = self._values["train"]["query_times"] > 0
-        message += "" if valid_queries else "Недостаточное количество эпох " \
-                                            "обучения для реализации " \
-                                            "заданного числа опросов\n"
-
-        valid_momentum = True
-        if self._values["train"]["optimizer"] == "sgdm":
-            valid_momentum = 0.0 < self._values["train"]["momentum"] <= 1.0
-            message += "" if valid_momentum else "Инертность должна быть" \
-                                                 " в пределах (0; 1]\n"
-
-        valid_restarts = self._values["train"]["restarts"] != 0
-        message += "" if valid_restarts else "Количество запусков должно " \
-                                             "быть больше 0"
-
-        valid_layers = self._layers != 0
-        message += "" if valid_layers else "Число слоёв должно быть" \
-                                           " отлично от нуля\n"
-
-        valid_layers_config_neurons = all(map(lambda cfg:
-                                              cfg["neurons"] != 0,
-                                              self._values["layers"]["config"]))
-        if not valid_layers_config_neurons:
-            message += "Число нейронов должно быть отлично от нуля\n"
-
-        valid_layers_config_activations = all(
-            map(lambda cfg: cfg["activation"] is not None,
-                self._values["layers"]["config"]))
-        if not valid_layers_config_activations:
-            message += "Не выбрана функция активации\n"
-
-        valid_layers_config_dropout = all(
-            map(lambda cfg: 0.0 < cfg["dropout"] <= 1.0,
-                self._values["layers"]["config"]))
-        if not valid_layers_config_dropout:
-            message += "Drop-out должен быть в пределах (0; 1]\n"
-
-        # объединение всех проверок по И
-        valid = all((valid_restarts, valid_queries, valid_epochs, valid_inputs,
-                     valid_size, valid_lr,
-                     valid_test, valid_layers, valid_final_lr, valid_function,
-                     valid_optimizer, valid_momentum, valid_limits, valid_loss,
-                     valid_layers_config_neurons, valid_layers_config_dropout,
-                     valid_layers_config_activations, valid_batch, valid_decay))
-        if not valid:  # при наличии ошибок
-            return message  # возвращается сообщение об ошибках
+        return ConfigUtils.validate(self._unvalidated_config)
 
     def _save_result(self, result: Tuple) -> None:
         """
@@ -825,9 +699,9 @@ class MainWindowSlots(Ui_MainWindow):
         """
         self._count += 1  # увеличение кол-ва завершившихся тредов
         self.progressLabel.setText(f"{self._count} / "
-                                   f"{self._config.train['restarts']}")
+                                   f"{self._config_handler.config.train.restarts}")
         # если завершились не все треды
-        if self._count < self._config.train["restarts"]:
+        if self._count < self._config_handler.config.train.restarts:
             return  # обработки не происходит
         # когда завершились все треды
         self._count = 0  # сбрасывается счётчик
@@ -841,13 +715,14 @@ class MainWindowSlots(Ui_MainWindow):
                 best_result = result
                 self._best_model = model
         # вывод лучшего результата
-        print(self._config.get_str_results(best_result))  # текстом
-        graph_results = self._config.get_graph_results(best_result)  # графиками
+        print(self._config_handler.get_str_results(best_result))  # текстом
+        graph_results = self._config_handler.get_graph_results(best_result)  # графиками
         # config.get_graph_results возвращает None, если графики не требуются
         if graph_results is not None:
             graph_function, graph_params = graph_results
-            fig, _ = graph_function(**graph_params)  # получение фигуры
-            self._plot(fig)  # отображение графика
+            figs_axs = graph_function(**graph_params)  # получение фигур
+            for fig, _ in figs_axs:
+                self._plot(fig)  # отображение графика
         self.startButton.setEnabled(True)  # разблок-ка кнопки запуска обучения
         self.exportButton.setEnabled(True)
 

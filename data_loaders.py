@@ -2,7 +2,7 @@
 Модуль с описанием классов, загружающих данные для обучения и тестов
 """
 from os.path import join, exists
-from typing import Tuple, List
+from typing import Tuple, List, Callable
 
 from urllib import request
 import gzip
@@ -104,6 +104,20 @@ class ApproximationDataLoader(DataLoader):
     функции
     """
     sep = "/"
+    inputs: int
+    expression: str
+    simplified_expression: str
+    str_expression: str
+    size: int
+    limits: List[List[float]]
+    scale_inputs: bool
+    p_to_test: float
+    p_to_extend: float
+    input_symbols: List[sympy.Symbol]
+    function: Callable
+    train_size: int
+    test_size: int
+
 
     def __init__(self, inputs: int,
                  fun_name: str,
@@ -149,7 +163,7 @@ class ApproximationDataLoader(DataLoader):
                                        self.simplified_expression)
 
         self.train_size = size
-        self.test_size = int(self.train_size ** self.inputs * self.p_to_test)
+        self.test_size = int(self.train_size * self.p_to_test)
 
     def load(self) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
         """

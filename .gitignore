@@ -4,3 +4,5 @@ data/
 research/
 settings/
 *.pyc
+*tmp*
+Output*.txt

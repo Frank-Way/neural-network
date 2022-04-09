@@ -3,7 +3,7 @@
 обработки и форматирования данных, отрисовки графиков.
 """
 import os
-from typing import List, Tuple, Callable
+from typing import List, Tuple, Callable, Any
 
 from PIL import Image
 import numpy as np
@@ -308,7 +308,7 @@ def show_results(losses: List[float],
                  pred_test: ndarray,
                  y_test: ndarray,
                  function_name: str,
-                 neurons: List[int]) -> Tuple:
+                 neurons: List[int]) -> List[Tuple[Any, Tuple[Any, ...]]]:
     """
     Функия для отрисовки графика по результатам обучения нейросети,
     аппроксимирующей математические функции одной переменной
@@ -336,28 +336,28 @@ def show_results(losses: List[float],
     t = y_test
     e = t - y
 
-    fig = plt.figure()
+    fig1 = plt.figure()
     ax1 = plt.subplot(122)
-    ax1.plot(x, y, label='модель')
-    ax1.plot(x, t, label='функция')
+    ax1.plot(x, y, label='модель', color="black")
+    ax1.plot(x, t, label='функция', color="red")
     ax1.set_title(f'воспроизведено с помощью {neurons[:-1]} нейронов')
     ax1.set(xlabel='x', ylabel=function_name)
     ax1.legend()
     ax1.grid()
 
     ax2 = plt.subplot(221)
-    ax2.plot(range(len(losses)), losses)
+    ax2.plot(range(len(losses)), losses, color="black")
     ax2.set_title('функция потерь')
     ax2.set(xlabel='опросы', ylabel='потеря')
     ax2.grid()
 
     ax3 = plt.subplot(223)
-    ax3.plot(x, e)
+    ax3.plot(x, e, color="black")
     ax3.set_title('макс. абс. ошибка')
     ax3.set(xlabel='x', ylabel='MAE(x)')
     ax3.grid()
 
-    return fig, (ax1, ax2, ax3)
+    return [(fig1, (ax1, ax2, ax3))]
 
 
 def show_results3d(losses: List[float],
@@ -365,7 +365,7 @@ def show_results3d(losses: List[float],
                    pred_test: ndarray,
                    y_test: ndarray,
                    function_name: str,
-                   neurons: List[int]) -> Tuple:
+                   neurons: List[int]) -> List[Tuple[Any, Tuple[Any, ...]]]:
     """
     Функия для отрисовки графика по результатам обучения нейросети,
     аппроксимирующей математические функции одной переменной
@@ -388,35 +388,46 @@ def show_results3d(losses: List[float],
     Tuple
         Фигура и оси
     """
+    sample_size = int(np.sqrt(x_test.shape[0]))
+    x1_meshed, x2_meshed = np.meshgrid(x_test[::sample_size, 0], x_test[:sample_size, 1])
+    new_shape = (sample_size, sample_size)
+    y_meshed = pred_test.reshape(new_shape)
+    t_meshed = y_test.reshape(new_shape)
+    e_meshed = (y_test - pred_test).reshape(new_shape)
 
-    x = x_test
-    y = pred_test
-    t = y_test
-    e = t - y
+    fig1 = plt.figure()
 
-    fig = plt.figure()
+    ax11 = fig1.add_subplot(1, 2, 1, projection='3d')
+    ax11.plot_surface(x1_meshed, x2_meshed, y_meshed, cmap='viridis', edgecolor='none')
+    ax11.set_title(f'воспроизведено с помощью {neurons[:-1]} нейронов')
+    ax11.set(xlabel="x1", ylabel="x2", zlabel=f"модель{function_name}")
+    ax11.legend()
+    ax11.grid()
 
-    ax1 = fig.add_subplot(122, projection='3d')
-    ax1.scatter3D(x[:, 0], x[:, 1], y, label='модель')
-    ax1.scatter3D(x[:, 0], x[:, 1], t, label='функция')
-    ax1.set_title(f'воспроизведено с помощью {neurons[:-1]} нейронов')
-    ax1.set(xlabel="x1", ylabel="x2", zlabel=f"{function_name}")
-    ax1.legend()
-    ax1.grid()
+    ax12 = fig1.add_subplot(1, 2, 2, projection='3d')
+    ax12.plot_surface(x1_meshed, x2_meshed, y_meshed, cmap='viridis', edgecolor='none')
+    ax12.scatter(x1_meshed, x2_meshed, t_meshed, color="black")
+    ax12.set_title(f'модель{neurons[:-1]} и исходная зависимость')
+    ax12.set(xlabel="x1", ylabel="x2", zlabel=f"{function_name}")
+    ax12.grid()
 
-    ax2 = fig.add_subplot(221)
-    ax2.plot(range(len(losses)), losses)
-    ax2.set_title('функция потерь')
-    ax2.set(xlabel='опросы', ylabel='потеря')
-    ax2.grid()
+    fig2 = plt.figure()
 
-    ax3 = fig.add_subplot(223, projection='3d')
-    ax3.scatter3D(x[:, 0], x[:, 1], e)
-    ax3.set_title('макс. абс. ошибка')
-    ax3.set(xlabel="x1", ylabel="x2", zlabel="MAE(x1, x2)")
-    ax3.grid()
+    ax21 = fig2.add_subplot(1, 2, 1)
+    ax21.plot(range(len(losses)), losses)
+    ax21.set_title('функция потерь')
+    ax21.set(xlabel='опросы', ylabel='потеря')
+    ax21.grid()
 
-    return fig, (ax1, ax2, ax3)
+    ax22 = fig2.add_subplot(1, 2, 2, projection='3d')
+    ax22.plot_surface(x1_meshed, x2_meshed, e_meshed, cmap='viridis', edgecolor='none')
+    ax22.set_title(f'ошибка')
+    ax22.set(xlabel="x1", ylabel="x2", zlabel=f"MAE(x1, x2)")
+    ax22.legend()
+    ax22.grid()
+
+    return [(fig1, (ax11, ax12)),
+            (fig2, (ax21, ax22))]
 
 
 def show_results_losses(losses: List[float],
@@ -424,7 +435,7 @@ def show_results_losses(losses: List[float],
                         pred_test: ndarray,
                         y_test: ndarray,
                         function_name: str,
-                        neurons: List[int]) -> Tuple:
+                        neurons: List[int]) -> List[Tuple[Any, Tuple[Any, ...]]]:
     """
     Функия для отрисовки графика функции потерь по результатам обучения
     нейросети, аппроксимирующей математические функции одной переменной
@@ -448,19 +459,20 @@ def show_results_losses(losses: List[float],
     Tuple
         Фигура и оси
     """
-    fig = plt.figure()
+    fig1 = plt.figure()
 
-    ax = plt.subplot()
-    ax.plot(range(len(losses)), losses)
-    ax.set_title('функция потерь')
-    ax.set(xlabel='опросы', ylabel='потеря')
-    ax.grid()
+    ax11 = plt.subplot()
+    ax11.plot(range(len(losses)), losses, color="black")
+    ax11.set_title('функция потерь')
+    ax11.set(xlabel='опросы', ylabel='потеря')
+    ax11.grid()
 
-    return fig, (ax, )
+    return [(fig1, (ax11, ))]
 
 
-def show_function(function: Callable,
-                  limits: List[List[float]] = None) -> Tuple:
+def show_function(function_name: str,
+                  function: Callable,
+                  limits: List[List[float]] = None) -> List[Tuple[Any, Tuple[Any, ...]]]:
     """
     Построение графика функции в окрестности нуля или в заданных границах
     Parameters
@@ -474,22 +486,23 @@ def show_function(function: Callable,
     Tuple
         Фигура и оси
     """
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
+    fig1 = plt.figure()
+    ax11 = fig1.add_subplot(111)
     if limits is None:
         length = 5
         x = np.linspace(-length, length, num=100)
     else:
         x = np.linspace(limits[0][0], limits[0][1], num=100)
     y = function(x)
-    ax1.plot(x, y)
-    ax1.set_title("Функция")
-    ax1.set(xlabel='x', ylabel='F(x)')
-    return fig, (ax1,)
+    ax11.plot(x, y, color="black")
+    ax11.set_title(f"Функция: {function_name}")
+    ax11.set(xlabel='x1', ylabel=f'F(x1)={function_name}')
+    return [(fig1, (ax11,))]
 
 
-def show_function3d(function: Callable,
-                    limits: List[List[float]] = None) -> Tuple:
+def show_function3d(function_name: str,
+                    function: Callable,
+                    limits: List[List[float]] = None) -> List[Tuple[Any, Tuple[Any, ...]]]:
     """
     Построение графика функции в окрестности нуля или в заданных границах
     Parameters
@@ -503,18 +516,20 @@ def show_function3d(function: Callable,
     Tuple
         Фигура и оси
     """
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111, projection="3d")
+    fig1 = plt.figure()
+    ax11 = fig1.add_subplot(111, projection="3d")
     if limits is None:
         length = 5
-        r = to_2d(np.linspace(-length, length, num=10))
+        r = to_2d(np.linspace(-length, length, num=20))
         x = cartesian((r, r))
     else:
-        r1 = to_2d(np.linspace(limits[0][0], limits[0][1], num=10))
-        r2 = to_2d(np.linspace(limits[1][0], limits[1][1], num=10))
+        r1 = to_2d(np.linspace(limits[0][0], limits[0][1], num=20))
+        r2 = to_2d(np.linspace(limits[1][0], limits[1][1], num=20))
         x = cartesian((r1, r2))
-    y = function(*[x[:, ii] for ii in range(2)])
-    ax1.scatter3D(x[:, 0], x[:, 1], y)
-    ax1.set_title("Функция")
-    ax1.set(xlabel="x1", ylabel="x2", zlabel="F(x1, x2)")
-    return fig, (ax1,)
+    x1, x2 = x[:, 0], x[:, 1]
+    x1_meshed, x2_meshed = np.meshgrid(x1, x2)
+    y_meshed = function(x1_meshed, x2_meshed)
+    ax11.plot_surface(x1_meshed, x2_meshed, y_meshed, cmap='viridis', edgecolor='none')
+    ax11.set_title(f"Функция: {function_name}")
+    ax11.set(xlabel="x1", ylabel="x2", zlabel=f"F(x1, x2)={function_name}")
+    return [(fig1, (ax11,))]
