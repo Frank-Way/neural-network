@@ -25,7 +25,7 @@ class Operation(object):
 
     def forward(self,
                 input_: ndarray,
-                inference: bool = False) -> ndarray:
+                inference: bool) -> ndarray:
         """
         Получение результата обработки входа
         Вход хранится в атрибуте экземпляра _input
@@ -68,7 +68,7 @@ class Operation(object):
 
         return self.input_grad
 
-    def _output(self, inference: bool = False) -> ndarray:
+    def _output(self, inference: bool) -> ndarray:
         """
         Метод вычисления выхода реализуется в наследниках
         Returns
@@ -149,7 +149,7 @@ class ParamOperation(Operation):
         """
         raise NotImplementedError()
 
-    def _output(self, inference: bool = False) -> ndarray:
+    def _output(self, inference: bool) -> ndarray:
         """
         Метод вычисления выхода реализуется в наследниках
         Returns
@@ -193,7 +193,7 @@ class WeightMultiply(ParamOperation):
         """
         super().__init__(weight)
 
-    def _output(self, inference: bool = False) -> ndarray:
+    def _output(self, inference: bool) -> ndarray:
         """
         Умножение (вычисление выхода)
         Returns
@@ -248,7 +248,7 @@ class BiasAdd(ParamOperation):
 
         super().__init__(bias)
 
-    def _output(self, inference: bool = False) -> ndarray:
+    def _output(self, inference: bool) -> ndarray:
         """
         Добавление смещений (получение выхода)
         Returns
@@ -306,7 +306,7 @@ class Dropout(Operation):
         super().__init__()
         self.keep_prob = keep_prob
 
-    def _output(self, inference: bool = False) -> ndarray:
+    def _output(self, inference: bool) -> ndarray:
         """
         Прореживание
         Parameters
@@ -352,7 +352,7 @@ class Sigmoid(Operation):
     def __init__(self):
         super().__init__()
 
-    def _output(self, inference: bool = None) -> ndarray:
+    def _output(self, inference: bool) -> ndarray:
         """
         Вычисление сигмоиды (выход)
         Parameters
@@ -390,7 +390,7 @@ class Linear(Operation):
     def __init__(self):
         super().__init__()
 
-    def _output(self, inference: bool = None) -> ndarray:
+    def _output(self, inference: bool) -> ndarray:
         """
         Вход передаётся на выход без изменений
         Parameters
@@ -426,7 +426,7 @@ class Tanh(Operation):
     def __init__(self):
         super().__init__()
 
-    def _output(self, inference: bool = None) -> ndarray:
+    def _output(self, inference: bool) -> ndarray:
         """
         Вычисление гиперболического тангенса
         Parameters
@@ -462,7 +462,7 @@ class LeakyReLU(Operation):
     def __init__(self):
         super().__init__()
 
-    def _output(self, inference: bool = None) -> ndarray:
+    def _output(self, inference: bool) -> ndarray:
         """
         Вычисление LeakyReLU
         Parameters
@@ -500,7 +500,7 @@ class ReLU(Operation):
     def __init__(self):
         super().__init__()
 
-    def _output(self, inference: bool = None) -> ndarray:
+    def _output(self, inference: bool) -> ndarray:
         """
         Вычисление LeakyReLU
         Parameters

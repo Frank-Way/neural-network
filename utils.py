@@ -5,14 +5,13 @@
 import os
 from typing import List, Tuple, Callable, Any
 
-from PIL import Image
-import numpy as np
-from numpy import ndarray
 import matplotlib as mpl
+import numpy as np
+from PIL import Image
 from matplotlib import pyplot as plt
-from sklearn.preprocessing import MinMaxScaler
+from numpy import ndarray
 from scipy.special import logsumexp
-
+from sklearn.preprocessing import MinMaxScaler
 
 mpl.use('Qt5Agg')
 
@@ -496,7 +495,8 @@ def show_function(function_name: str,
     y = function(x)
     ax11.plot(x, y, color="black")
     ax11.set_title(f"Функция: {function_name}")
-    ax11.set(xlabel='x1', ylabel=f'F(x1)={function_name}')
+    ax11.set(xlabel='x1', ylabel=f'F(x1)')
+    ax11.grid()
     return [(fig1, (ax11,))]
 
 

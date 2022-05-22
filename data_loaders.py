@@ -1,17 +1,16 @@
 """
 Модуль с описанием классов, загружающих данные для обучения и тестов
 """
-from os.path import join, exists
-from typing import Tuple, List, Callable
-
-from urllib import request
 import gzip
 import pickle
+from os.path import join, exists
+from typing import Tuple, List, Callable
+from urllib import request
+
 import numpy as np
+import sympy
 from numpy import ndarray
 from sklearn.preprocessing import MinMaxScaler
-
-import sympy
 
 from utils import to_2d, mnist_labels_to_y, replace_chars, cartesian
 

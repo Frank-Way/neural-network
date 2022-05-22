@@ -103,7 +103,7 @@ class Trainer(object):
             batch_generator = batches_generator(x_train, y_train, batch_size)
 
             for ii, (x_batch, y_batch) in enumerate(batch_generator):
-                self.net.train_batch(x_batch, y_batch)
+                self.net.train_batch(x_batch, y_batch, inference=False)
                 self.optim.step()
             if (e + 1) % query_every == 0:
                 test_preds = self.net.forward(x_test, inference=True)

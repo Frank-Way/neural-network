@@ -37,7 +37,7 @@ class NeuralNetwork(object):
 
     def forward(self,
                 x_batch: ndarray,
-                inference: bool = False) -> ndarray:
+                inference: bool) -> ndarray:
         """
         Передача входа через набор слоёв
         Parameters
@@ -79,7 +79,7 @@ class NeuralNetwork(object):
     def forward_loss(self,
                      x_batch: ndarray,
                      y_batch: ndarray,
-                     inference: bool = False) -> float:
+                     inference: bool) -> float:
         """
         Вычисление потерь
         Parameters
@@ -101,7 +101,7 @@ class NeuralNetwork(object):
     def train_batch(self,
                     x_batch: ndarray,
                     y_batch: ndarray,
-                    inference: bool = False) -> float:
+                    inference: bool) -> float:
         """
         Обработка пакета входных данных (вычисление выхода,
         вычисление потерь, вычисление градиента)

@@ -42,7 +42,7 @@ class Layer(object):
 
     def forward(self,
                 input_: ndarray,
-                inference: bool = False) -> ndarray:
+                inference: bool) -> ndarray:
         """
         Обработка входа набором операций
         Parameters

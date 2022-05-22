@@ -5,15 +5,13 @@
 """
 import sys
 import traceback
+from copy import deepcopy
 from queue import Queue
 from typing import List, Any, Tuple, Callable
-from copy import deepcopy, copy
 
 import matplotlib
-import numpy as np
-import sympy
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QObject, pyqtSignal, QRunnable, pyqtSlot, QThreadPool
+from PyQt5.QtCore import QObject, pyqtSignal, QRunnable, QThreadPool
 from PyQt5.QtWidgets import QMessageBox, QComboBox, QMdiSubWindow
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, \
     NavigationToolbar2QT
@@ -171,11 +169,14 @@ class MainWindowSlots(Ui_MainWindow):
         if inputs is None: return
         self._init_limit_edits()
         if inputs == 1:
-            self.inputsMinMaxLabel.setText("F(X1) =")
+            self.functionLabel.setText("F(X1) =")
+            self.inputsMinMaxLabel.setText("Границы X1")
         elif inputs == 2:
-            self.inputsMinMaxLabel.setText("F(X1, X2) =")
+            self.functionLabel.setText("F(X1, X2) =")
+            self.inputsMinMaxLabel.setText("Границы X1, X2")
         else:
-            self.inputsMinMaxLabel.setText(f"F(X1, ..., X{inputs}) =")
+            self.functionLabel.setText(f"F(X1, ..., X{inputs}) =")
+            self.inputsMinMaxLabel.setText(f"Границы X1, ..., X{inputs}")
 
     def layers_count_changes(self) -> None:
         """
@@ -193,6 +194,7 @@ class MainWindowSlots(Ui_MainWindow):
         inputs = self._read_inputs_count()
         if inputs is None: return
         _, fn = self._read_function()
+        if fn is None: return
         valid = ConfigUtils.is_function_valid(fn, inputs)
         if not valid:  # если функция не корректна
             QMessageBox.about(self.centralwidget, "Ошибка",
@@ -209,6 +211,7 @@ class MainWindowSlots(Ui_MainWindow):
         inputs = self._read_inputs_count()
         if inputs is None: return 
         simplified_function, fn = self._read_function()  # чтение функции
+        if (simplified_function is None) or (fn is None): return
         # чтение границ изменения входных переменных
         limits = self._read_limits()
         if inputs == 1:  # построение графика функции одной переменной
@@ -224,6 +227,7 @@ class MainWindowSlots(Ui_MainWindow):
             for ii in range(2, inputs + 1):
                 simplified_function = simplified_function.replace(f"x{ii}", "x1")
             fn = ConfigUtils.lambidify_function(simplified_function, 1)
+            if (simplified_function is None) or (fn is None): return
             figs_axs = show_function(simplified_function, fn, limits)
         for fig, _ in figs_axs:
             self._plot(fig)  # отображение графика
